@@ -1,0 +1,1 @@
+Summarize each Reddit post in one sentence focused on the user pain point.

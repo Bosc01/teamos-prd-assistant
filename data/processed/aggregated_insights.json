@@ -1,0 +1,38 @@
+[
+  {
+    "problem_area": "state",
+    "classification": "bug",
+    "frequency": 1,
+    "key_pain_points": [
+      "Our team keeps hitting state lock errors during apply and it slows down every release"
+    ],
+    "supporting_evidence": [
+      "Our team keeps hitting state lock errors during apply and it slows down every release."
+    ],
+    "product_implications": "Users discussing state often need clearer support for bug workflows."
+  },
+  {
+    "problem_area": "modules",
+    "classification": "feature request",
+    "frequency": 1,
+    "key_pain_points": [
+      "I wish Terraform made it easier to see which module versions are in use across workspaces"
+    ],
+    "supporting_evidence": [
+      "I wish Terraform made it easier to see which module versions are in use across workspaces."
+    ],
+    "product_implications": "Users discussing modules often need clearer support for feature request workflows."
+  },
+  {
+    "problem_area": "providers",
+    "classification": "question",
+    "frequency": 1,
+    "key_pain_points": [
+      "Question for the community: what is the safest workflow for testing provider upgrades before production"
+    ],
+    "supporting_evidence": [
+      "Question for the community: what is the safest workflow for testing provider upgrades before production?"
+    ],
+    "product_implications": "Users discussing providers often need clearer support for question workflows."
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "sample1",
+    "title": "Terraform remote state keeps locking during apply",
+    "body": "Our team keeps hitting state lock errors during apply and it slows down every release.",
+    "subreddit": "terraform",
+    "author": "example_user_1",
+    "created_utc": 1717200000,
+    "score": 15,
+    "num_comments": 8,
+    "url": "https://www.reddit.com/r/terraform/comments/sample1",
+    "classification": "bug",
+    "summary": "Our team keeps hitting state lock errors during apply and it slows down every release",
+    "topic": "state"
+  },
+  {
+    "id": "sample2",
+    "title": "Feature request: better module version visibility",
+    "body": "I wish Terraform made it easier to see which module versions are in use across workspaces.",
+    "subreddit": "terraform",
+    "author": "example_user_2",
+    "created_utc": 1717203600,
+    "score": 11,
+    "num_comments": 3,
+    "url": "https://www.reddit.com/r/terraform/comments/sample2",
+    "classification": "feature request",
+    "summary": "I wish Terraform made it easier to see which module versions are in use across workspaces",
+    "topic": "modules"
+  },
+  {
+    "id": "sample3",
+    "title": "How do you handle provider upgrades safely?",
+    "body": "Question for the community: what is the safest workflow for testing provider upgrades before production?",
+    "subreddit": "terraform",
+    "author": "example_user_3",
+    "created_utc": 1717207200,
+    "score": 19,
+    "num_comments": 10,
+    "url": "https://www.reddit.com/r/terraform/comments/sample3",
+    "classification": "question",
+    "summary": "Question for the community: what is the safest workflow for testing provider upgrades before production",
+    "topic": "providers"
+  }
+]
