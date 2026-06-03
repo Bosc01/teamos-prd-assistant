@@ -4,24 +4,48 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, DefaultDict, Dict, List
 
 from sklearn.cluster import KMeans
-from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 
 ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_FILE = ROOT / "data" / "processed" / "insights.json"
 CLUSTERED_FILE = ROOT / "data" / "processed" / "clustered_insights.json"
 CLUSTER_SUMMARY_FILE = ROOT / "output" / "topic_clusters.csv"
 
+CUSTOM_STOP_WORDS = [
+    "terraform", "hashicorp", "github", "issue", "issues", "http", "https",
+    "com", "html", "www", "index", "description", "expected", "behavior",
+    "actual", "steps", "reproduce", "additional", "context", "example",
+    "using", "used", "use", "would", "like", "want", "need", "get", "got",
+    "getting", "also", "one", "new", "add", "added", "adding", "currently",
+    "feature", "request", "requests", "bug", "docs", "question", "relates",
+    "community", "comments", "template", "reproduce", "version", "versions",
+    "provider", "providers", "resource", "resources", "aws", "config",
+    "configuration"
+]
+combined_stop_words = list(ENGLISH_STOP_WORDS) + CUSTOM_STOP_WORDS
+
+
+def _clean_text(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r'https?://\S+', '', text)
+    text = re.sub(r'[^a-z0-9\s]', ' ', text)
+    text = re.sub(r'\b[a-z0-9]\b', ' ', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    return text
+
 
 def _combined_text(issue: Dict[str, Any]) -> str:
     title = str(issue.get("title", "")).strip()
     snippet = str(issue.get("body_snippet", "")).strip()
     combined = f"{title} {snippet}".strip()
-    return combined or "empty"
+    cleaned = _clean_text(combined)
+    return cleaned or "empty"
 
 
 def _cluster_labels(kmeans: KMeans, feature_names: List[str]) -> Dict[int, str]:
@@ -90,7 +114,7 @@ def _print_summary(rows: List[Dict[str, Any]]) -> None:
         )
 
 
-def cluster_topics(n_clusters: int = 12) -> None:
+def cluster_topics(n_clusters: int = 15) -> None:
     if not PROCESSED_FILE.exists():
         raise FileNotFoundError(f"Processed insights file not found: {PROCESSED_FILE}")
 
@@ -101,7 +125,7 @@ def cluster_topics(n_clusters: int = 12) -> None:
     cluster_count = min(n_clusters, len(insights))
     documents = [_combined_text(issue) for issue in insights]
 
-    vectorizer = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), max_features=5000)
+    vectorizer = TfidfVectorizer(stop_words=combined_stop_words, ngram_range=(1, 2), max_features=5000)
     tfidf_matrix = vectorizer.fit_transform(documents)
 
     kmeans = KMeans(n_clusters=cluster_count, random_state=42, n_init=10)
