@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, DefaultDict, Dict, List
 
+import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 
@@ -16,6 +19,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_FILE = ROOT / "data" / "processed" / "insights.json"
 CLUSTERED_FILE = ROOT / "data" / "processed" / "clustered_insights.json"
 CLUSTER_SUMMARY_FILE = ROOT / "output" / "topic_clusters.csv"
+DEFAULT_N_CLUSTERS = 15
+FALLBACK_TOPIC_LABEL = "insufficient detail"
 
 CUSTOM_STOP_WORDS = [
     "terraform", "hashicorp", "github", "issue", "issues", "http", "https",
@@ -44,18 +49,57 @@ def _combined_text(issue: Dict[str, Any]) -> str:
     title = str(issue.get("title", "")).strip()
     snippet = str(issue.get("body_snippet", "")).strip()
     combined = f"{title} {snippet}".strip()
-    cleaned = _clean_text(combined)
-    return cleaned or "empty"
+    return _clean_text(combined)
 
 
-def _cluster_labels(kmeans: KMeans, feature_names: List[str]) -> Dict[int, str]:
+def _is_redundant_term(term: str, selected_terms: List[str]) -> bool:
+    term_tokens = set(term.split())
+    for selected in selected_terms:
+        selected_tokens = set(selected.split())
+        if term == selected or term_tokens.issubset(selected_tokens) or selected_tokens.issubset(term_tokens):
+            return True
+    return False
+
+
+def _topic_label_from_scores(feature_names: List[str], term_scores: np.ndarray) -> str:
+    if term_scores.size == 0 or not np.isfinite(term_scores).any():
+        return "misc topic"
+
+    ranked_indices = np.argsort(term_scores)[::-1]
+    candidates: List[tuple[str, float, int]] = []
+    for index in ranked_indices[:20]:
+        score = float(term_scores[index])
+        if score <= 0:
+            continue
+        term = feature_names[index]
+        candidates.append((term, score, len(term.split())))
+
+    if not candidates:
+        return "misc topic"
+
+    candidates.sort(key=lambda item: (item[2], item[1]), reverse=True)
+
+    selected_terms: List[str] = []
+    for term, _, _ in candidates:
+        if _is_redundant_term(term, selected_terms):
+            continue
+        selected_terms.append(term)
+        if len(selected_terms) >= 3:
+            break
+
+    if not selected_terms:
+        return "misc topic"
+
+    return " / ".join(selected_terms)
+
+
+def _cluster_labels(tfidf_matrix: Any, cluster_ids: np.ndarray, feature_names: List[str]) -> Dict[int, str]:
     labels: Dict[int, str] = {}
 
-    for cluster_id, centroid in enumerate(kmeans.cluster_centers_):
-        top_indices = centroid.argsort()[-3:][::-1]
-        top_terms = [feature_names[index] for index in top_indices]
-        labels[cluster_id] = " ".join(top_terms)
-
+    for cluster_id in sorted({int(cluster_id) for cluster_id in cluster_ids}):
+        cluster_matrix = tfidf_matrix[cluster_ids == cluster_id]
+        term_scores = np.asarray(cluster_matrix.mean(axis=0)).ravel()
+        labels[cluster_id] = _topic_label_from_scores(feature_names, term_scores)
     return labels
 
 
@@ -114,7 +158,7 @@ def _print_summary(rows: List[Dict[str, Any]]) -> None:
         )
 
 
-def cluster_topics(n_clusters: int = 15) -> None:
+def cluster_topics(n_clusters: int = DEFAULT_N_CLUSTERS) -> None:
     if not PROCESSED_FILE.exists():
         raise FileNotFoundError(f"Processed insights file not found: {PROCESSED_FILE}")
 
@@ -122,23 +166,57 @@ def cluster_topics(n_clusters: int = 15) -> None:
     if not insights:
         raise ValueError("No insights found to cluster.")
 
-    cluster_count = min(n_clusters, len(insights))
+    cluster_count = max(1, int(n_clusters))
     documents = [_combined_text(issue) for issue in insights]
+    valid_documents = [(index, document) for index, document in enumerate(documents) if document]
 
-    vectorizer = TfidfVectorizer(stop_words=combined_stop_words, ngram_range=(1, 2), max_features=5000)
-    tfidf_matrix = vectorizer.fit_transform(documents)
+    clustered_assignments: Dict[int, tuple[int, str]] = {}
 
-    kmeans = KMeans(n_clusters=cluster_count, random_state=42, n_init=10)
-    cluster_ids = kmeans.fit_predict(tfidf_matrix)
+    if valid_documents:
+        valid_indices = [index for index, _ in valid_documents]
+        valid_texts = [document for _, document in valid_documents]
+        vectorizer = TfidfVectorizer(stop_words=combined_stop_words, ngram_range=(1, 2), max_features=5000)
 
-    feature_names = list(vectorizer.get_feature_names_out())
-    labels = _cluster_labels(kmeans, feature_names)
+        try:
+            tfidf_matrix = vectorizer.fit_transform(valid_texts)
+        except ValueError as exc:
+            if "empty vocabulary" not in str(exc):
+                raise
+            tfidf_matrix = None
+
+        if tfidf_matrix is not None:
+            non_zero_mask = np.asarray(tfidf_matrix.getnnz(axis=1) > 0).ravel()
+            filtered_indices = [valid_indices[index] for index, keep in enumerate(non_zero_mask) if keep]
+            filtered_texts = [valid_texts[index] for index, keep in enumerate(non_zero_mask) if keep]
+
+            if filtered_indices:
+                filtered_matrix = tfidf_matrix[non_zero_mask]
+                cluster_count = min(cluster_count, len(filtered_indices), len(set(filtered_texts)))
+
+                if cluster_count == 1:
+                    cluster_ids = np.zeros(filtered_matrix.shape[0], dtype=int)
+                else:
+                    kmeans = KMeans(n_clusters=cluster_count, random_state=42, n_init=10)
+                    cluster_ids = np.asarray(kmeans.fit_predict(filtered_matrix))
+
+                feature_names = list(vectorizer.get_feature_names_out())
+                labels = _cluster_labels(filtered_matrix, cluster_ids, feature_names)
+
+                for issue_index, cluster_id in zip(filtered_indices, cluster_ids):
+                    clustered_assignments[issue_index] = (int(cluster_id), labels[int(cluster_id)])
+
+    fallback_indices = set(range(len(insights))) - set(clustered_assignments)
+    if fallback_indices:
+        fallback_cluster_id = (max(assignment[0] for assignment in clustered_assignments.values()) + 1) if clustered_assignments else 0
+        for issue_index in sorted(fallback_indices):
+            clustered_assignments[issue_index] = (fallback_cluster_id, FALLBACK_TOPIC_LABEL)
 
     clustered_insights: List[Dict[str, Any]] = []
-    for issue, cluster_id in zip(insights, cluster_ids):
+    for issue_index, issue in enumerate(insights):
+        cluster_id, topic_label = clustered_assignments[issue_index]
         enriched_issue = dict(issue)
         enriched_issue["cluster_id"] = int(cluster_id)
-        enriched_issue["topic_cluster"] = labels[int(cluster_id)]
+        enriched_issue["topic_cluster"] = topic_label
         clustered_insights.append(enriched_issue)
 
     CLUSTERED_FILE.parent.mkdir(parents=True, exist_ok=True)
@@ -157,8 +235,19 @@ def cluster_topics(n_clusters: int = 15) -> None:
     _print_summary(summary_rows)
 
 
+def _default_cluster_count() -> int:
+    raw = os.getenv("TOPIC_CLUSTER_COUNT", str(DEFAULT_N_CLUSTERS)).strip()
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return DEFAULT_N_CLUSTERS
+
+
 def main() -> None:
-    cluster_topics()
+    parser = argparse.ArgumentParser(description="Cluster extracted issue insights into topic groups.")
+    parser.add_argument("--clusters", type=int, default=_default_cluster_count(), help="Number of topic clusters (default: %(default)s).")
+    args = parser.parse_args()
+    cluster_topics(n_clusters=args.clusters)
 
 
 if __name__ == "__main__":

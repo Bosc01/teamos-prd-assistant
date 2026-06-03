@@ -27,9 +27,27 @@ This project ingests open GitHub Issues from `hashicorp/terraform` and `hashicor
 python src/pipeline.py
 ```
 
+You can override the default number of topic clusters:
+
+```bash
+python src/pipeline.py --clusters 20
+```
+
+Or via environment variable:
+
+```bash
+TOPIC_CLUSTER_COUNT=20 python src/pipeline.py
+```
+
 ## Output
 
-The pipeline writes `output/insights.csv`, sorted by highest `signal_score` first. You can open this file directly in Excel or Google Sheets.
+The pipeline writes:
+
+- `output/insights.csv` sorted by highest `signal_score` first
+- `data/processed/clustered_insights.json` with per-issue `cluster_id` and `topic_cluster`
+- `output/topic_clusters.csv` with cluster summary rows (`cluster_id`, `topic_label`, `issue_count`, `avg_signal_score`, `top_issues`)
+
+The clustering step now guards against empty/degenerate issue text and assigns those rows to an `insufficient detail` topic instead of forcing unstable vectors into KMeans.
 
 ## Fields reference
 
