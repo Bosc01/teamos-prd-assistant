@@ -2,13 +2,24 @@
 
 from __future__ import annotations
 
+import argparse
+import os
+
 from fetch_issues import fetch_all_issues
 from extract_insights import extract_insights
 from export_csv import export_csv
 from cluster_topics import cluster_topics
 
 
-def run_pipeline() -> None:
+def _default_cluster_count() -> int:
+    raw = os.getenv("TOPIC_CLUSTER_COUNT", "15").strip()
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return 15
+
+
+def run_pipeline(n_clusters: int | None = None) -> None:
     try:
         print("Step 1/4: Fetching issues...")
         fetch_all_issues()
@@ -20,7 +31,7 @@ def run_pipeline() -> None:
         export_csv()
 
         print("Step 4/4: Clustering topics...")
-        cluster_topics()
+        cluster_topics(n_clusters=n_clusters or _default_cluster_count())
 
         print("Pipeline completed successfully.")
     except Exception as exc:
@@ -29,4 +40,7 @@ def run_pipeline() -> None:
 
 
 if __name__ == "__main__":
-    run_pipeline()
+    parser = argparse.ArgumentParser(description="Run the full issue-insights pipeline.")
+    parser.add_argument("--clusters", type=int, default=_default_cluster_count(), help="Number of topic clusters (default: %(default)s).")
+    args = parser.parse_args()
+    run_pipeline(n_clusters=args.clusters)
