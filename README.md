@@ -14,6 +14,10 @@ This project ingests open GitHub Issues from `hashicorp/terraform` and `hashicor
    cp .env.example .env
    ```
 4. Edit `.env` and set `GITHUB_TOKEN`.
+5. (Optional) Override source repositories with a comma-separated list:
+   ```bash
+   ISSUE_REPOS=hashicorp/terraform,hashicorp/terraform-provider-aws
+   ```
 
 ## Create a GitHub PAT
 
@@ -25,6 +29,12 @@ This project ingests open GitHub Issues from `hashicorp/terraform` and `hashicor
 
 ```bash
 python src/pipeline.py
+```
+
+You can override repositories directly from the CLI:
+
+```bash
+python src/pipeline.py --repos hashicorp/terraform hashicorp/terraform-provider-aws
 ```
 
 You can override the default number of topic clusters:
@@ -63,6 +73,6 @@ The clustering step now guards against empty/degenerate issue text and assigns t
 | `labels` | Comma-separated issue labels |
 | `comments` | Number of issue comments |
 | `upvotes` | `+1` reaction count |
-| `signal_score` | `comments + (upvotes * 2)` |
+| `signal_score` | Log-scaled comments/upvotes weighted by issue recency |
 | `body_snippet` | First 300 chars of body with newlines removed |
-| `category` | Rule-based category from labels |
+| `category` | Rule-based category from labels and title keywords |

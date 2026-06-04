@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -15,11 +14,12 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 
+from config import DEFAULT_N_CLUSTERS, default_cluster_count
+
 ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_FILE = ROOT / "data" / "processed" / "insights.json"
 CLUSTERED_FILE = ROOT / "data" / "processed" / "clustered_insights.json"
 CLUSTER_SUMMARY_FILE = ROOT / "output" / "topic_clusters.csv"
-DEFAULT_N_CLUSTERS = 15
 FALLBACK_TOPIC_LABEL = "insufficient detail"
 
 CUSTOM_STOP_WORDS = [
@@ -235,17 +235,9 @@ def cluster_topics(n_clusters: int = DEFAULT_N_CLUSTERS) -> None:
     _print_summary(summary_rows)
 
 
-def _default_cluster_count() -> int:
-    raw = os.getenv("TOPIC_CLUSTER_COUNT", str(DEFAULT_N_CLUSTERS)).strip()
-    try:
-        return max(1, int(raw))
-    except ValueError:
-        return DEFAULT_N_CLUSTERS
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Cluster extracted issue insights into topic groups.")
-    parser.add_argument("--clusters", type=int, default=_default_cluster_count(), help="Number of topic clusters (default: %(default)s).")
+    parser.add_argument("--clusters", type=int, default=default_cluster_count(), help="Number of topic clusters (default: %(default)s).")
     args = parser.parse_args()
     cluster_topics(n_clusters=args.clusters)
 
