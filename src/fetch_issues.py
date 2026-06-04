@@ -10,14 +10,35 @@ from typing import Dict, List
 import requests
 from dotenv import load_dotenv
 
-REPOSITORIES = {
-    "terraform": "hashicorp/terraform",
-    "terraform_aws": "hashicorp/terraform-provider-aws",
+DEFAULT_REPOS = ["hashicorp/terraform", "hashicorp/terraform-provider-aws"]
+DEFAULT_REPO_SLUGS = {
+    "hashicorp/terraform": "terraform",
+    "hashicorp/terraform-provider-aws": "terraform_aws",
 }
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"
 API_URL_TEMPLATE = "https://api.github.com/repos/{repo}/issues"
+
+
+def resolve_repos(repos: List[str] | None = None) -> List[str]:
+    if repos:
+        parsed = [repo.strip() for repo in repos if repo and repo.strip()]
+        return parsed or list(DEFAULT_REPOS)
+
+    raw = os.getenv("ISSUE_REPOS", "").strip()
+    if not raw:
+        return list(DEFAULT_REPOS)
+
+    parsed = [repo.strip() for repo in raw.split(",") if repo.strip()]
+    return parsed or list(DEFAULT_REPOS)
+
+
+def repo_output_filename(repo: str) -> str:
+    slug = DEFAULT_REPO_SLUGS.get(repo)
+    if slug is None:
+        slug = repo.lower().replace("/", "_").replace("-", "_")
+    return f"{slug}_issues.json"
 
 
 def _require_token() -> str:
@@ -66,13 +87,15 @@ def _save_raw(filename: str, issues: List[Dict]) -> None:
     out_path.write_text(json.dumps(issues, indent=2), encoding="utf-8")
 
 
-def fetch_all_issues() -> None:
+def fetch_all_issues(repos: List[str] | None = None) -> None:
     token = _require_token()
+    selected_repos = resolve_repos(repos)
 
-    for slug, repo in REPOSITORIES.items():
+    for repo in selected_repos:
         issues = _fetch_repo_issues(repo, token)
-        _save_raw(f"{slug}_issues.json", issues)
-        print(f"Saved {len(issues)} issues to data/raw/{slug}_issues.json")
+        filename = repo_output_filename(repo)
+        _save_raw(filename, issues)
+        print(f"Saved {len(issues)} issues to data/raw/{filename}")
 
 
 if __name__ == "__main__":
