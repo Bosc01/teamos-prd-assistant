@@ -53,10 +53,16 @@ def _combined_text(issue: Dict[str, Any]) -> str:
 
 
 def _is_redundant_term(term: str, selected_terms: List[str]) -> bool:
+    """Return True if term shares any token with already-selected terms,
+    or is a subset/superset of any selected term."""
     term_tokens = set(term.split())
     for selected in selected_terms:
         selected_tokens = set(selected.split())
-        if term == selected or term_tokens.issubset(selected_tokens) or selected_tokens.issubset(term_tokens):
+        # Block exact match, subset, superset, or any shared token
+        if (term == selected
+                or term_tokens.issubset(selected_tokens)
+                or selected_tokens.issubset(term_tokens)
+                or term_tokens & selected_tokens):
             return True
     return False
 
