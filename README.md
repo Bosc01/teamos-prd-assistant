@@ -14,6 +14,7 @@ This project ingests open GitHub Issues from `hashicorp/terraform` and `hashicor
    cp .env.example .env
    ```
 4. Edit `.env` and set `GITHUB_TOKEN`.
+5. Optional: set `ISSUE_REPOS` to a comma-separated list of repositories to override defaults (example: `ISSUE_REPOS=hashicorp/terraform,hashicorp/terraform-provider-aws`).
 
 ## Create a GitHub PAT
 
@@ -37,6 +38,12 @@ Or via environment variable:
 
 ```bash
 TOPIC_CLUSTER_COUNT=20 python src/pipeline.py
+```
+
+You can also override repositories per run:
+
+```bash
+python src/pipeline.py --repos hashicorp/terraform hashicorp/terraform-provider-aws
 ```
 
 ## Output
@@ -143,6 +150,6 @@ To send reminders automatically every weekday morning at 9 am:
 | `labels` | Comma-separated issue labels |
 | `comments` | Number of issue comments |
 | `upvotes` | `+1` reaction count |
-| `signal_score` | `comments + (upvotes * 2)` |
+| `signal_score` | Log-scaled comments/upvotes weighted by issue recency |
 | `body_snippet` | First 300 chars of body with newlines removed |
-| `category` | Rule-based category from labels |
+| `category` | Rule-based category from labels and title keywords |
