@@ -66,9 +66,8 @@ class TestSendReminderWithWebhook(unittest.TestCase):
 
         self.assertTrue(result)
         mock_requests_mod.post.assert_called_once()
-        call_kwargs = mock_requests_mod.post.call_args
-        self.assertIn("json", call_kwargs.kwargs if call_kwargs.kwargs else {})
-        payload = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
+        # Use .kwargs directly — raises KeyError clearly if "json" is not passed
+        payload = mock_requests_mod.post.call_args.kwargs["json"]
         self.assertIn("text", payload)
         self.assertIn("Reminder #1", payload["text"])
 
@@ -98,9 +97,8 @@ class TestSendReminderUrgency(unittest.TestCase):
             with mock.patch("notifier._requests") as mock_requests_mod:
                 mock_requests_mod.post.return_value = mock_response
                 notifier.send_reminder(req, approver)
-                call_kwargs = mock_requests_mod.post.call_args
-                payload = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
-                return payload["text"]
+                # Use .kwargs directly for clear failure if signature changes
+                return mock_requests_mod.post.call_args.kwargs["json"]["text"]
 
     def test_count_1_message_contains_reminder_1(self) -> None:
         text = self._get_message_text(count=0)  # count+1 = 1
@@ -131,8 +129,7 @@ class TestSendCompletionNotice(unittest.TestCase):
                 result = notifier.send_completion_notice(req)
 
         self.assertTrue(result)
-        call_kwargs = mock_requests_mod.post.call_args
-        payload = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
+        payload = mock_requests_mod.post.call_args.kwargs["json"]
         self.assertIn("All approvals received", payload["text"])
         self.assertIn("@steve", payload["text"])
 
@@ -153,8 +150,7 @@ class TestSendOverdueAlert(unittest.TestCase):
                 result = notifier.send_overdue_alert(req)
 
         self.assertTrue(result)
-        call_kwargs = mock_requests_mod.post.call_args
-        payload = call_kwargs.kwargs.get("json") or call_kwargs[1].get("json")
+        payload = mock_requests_mod.post.call_args.kwargs["json"]
         self.assertIn("Overdue", payload["text"])
         self.assertIn("@steve", payload["text"])
         self.assertIn("@garvita", payload["text"])
