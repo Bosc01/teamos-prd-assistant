@@ -49,6 +49,86 @@ The pipeline writes:
 
 The clustering step now guards against empty/degenerate issue text and assigns those rows to an `insufficient detail` topic instead of forcing unstable vectors into KMeans.
 
+## Approval Tracker
+
+The Approval Tracker is a standalone module that lets PMs create approval requests
+for PRDs, RFCs, and specs, track each approver's status, and receive automatic Slack
+reminders — so you never have to manually ping people again. Every notification and
+status change is logged to a full audit trail stored in `data/approvals/approvals.json`.
+
+### Setup
+
+Add your Slack incoming webhook URL to `.env` (optional but recommended):
+
+```bash
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+```
+
+Without a webhook, all notifications are printed to stdout so the tool remains fully
+usable without Slack configured.
+
+### Quick start
+
+```bash
+# Create an approval request
+python src/approval_tracker.py create \
+  --title "My Feature PRD" \
+  --url "https://link-to-doc" \
+  --requester "@yourname" \
+  --approvers "@alice" "@bob" \
+  --deadline 2026-06-25
+
+# Check status of all requests
+python src/approval_tracker.py status
+
+# Check status of a specific request
+python src/approval_tracker.py status --id abc12345
+
+# Run reminders (add this to cron: every morning at 9 am)
+python src/reminder_runner.py
+
+# Dry run — see what would be sent without sending
+python src/reminder_runner.py --dry-run
+```
+
+### Approver workflow
+
+An approver updates their status by running:
+
+```bash
+# Mark as currently reviewing
+python src/approval_tracker.py update --id <request-id> --approver @yourhandle --status reviewing
+
+# Approve the document
+python src/approval_tracker.py update --id <request-id> --approver @yourhandle --status approved
+
+# Mark as blocked (with optional note)
+python src/approval_tracker.py update --id <request-id> --approver @yourhandle --status blocked \
+  --note "Waiting on security review first"
+```
+
+### Cancel a request
+
+```bash
+python src/approval_tracker.py cancel --id <request-id>
+```
+
+### View full audit trail
+
+```bash
+python src/approval_tracker.py audit --id <request-id>
+```
+
+### Cron setup
+
+To send reminders automatically every weekday morning at 9 am:
+
+```
+0 9 * * 1-5 cd /path/to/teamos-prd-assistant && python src/reminder_runner.py
+```
+
+---
+
 ## Fields reference
 
 | Field | Description |
