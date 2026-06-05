@@ -56,14 +56,11 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None) -> No
         if dry_run:
             print(f"[dry-run] Would notify {handle} on '{title}'")
         else:
-            success = notifier.send_reminder(req, approver)
-            if success:
-                approval_tracker.record_notification(req["id"], handle)
-                reminder_count += 1
-            else:
-                # record_notification even when Slack is not configured (stdout fallback)
-                approval_tracker.record_notification(req["id"], handle)
-                reminder_count += 1
+            # send_reminder degrades to stdout when SLACK_WEBHOOK_URL is unset,
+            # so we always record the notification regardless of the return value.
+            notifier.send_reminder(req, approver)
+            approval_tracker.record_notification(req["id"], handle)
+            reminder_count += 1
 
     # --- overdue alerts ---
     overdue_count = 0
@@ -106,7 +103,7 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None) -> No
             print(f"[dry-run] Would send completion notice for '{req['title']}'")
         else:
             notifier.send_completion_notice(req)
-            # Mark so we don't re-send
+            # Mark so we don't re-send on subsequent cron runs
             _mark_completion_notice_sent(req["id"])
             completion_count += 1
 
