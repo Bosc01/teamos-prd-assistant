@@ -54,7 +54,19 @@ def create_request(
     deadline: str,
     reminder_interval_days: int = 2,
 ) -> Dict:
-    """Create a new approval request, save to JSON, and return the record."""
+    """Create a new approval request, save to JSON, and return the record.
+
+    Raises ValueError if deadline is not a valid ISO 8601 date (YYYY-MM-DD).
+    """
+    # Validate deadline format before saving — an invalid date would silently
+    # cause get_pending_reminders() to skip this request forever.
+    try:
+        datetime.fromisoformat(deadline)
+    except ValueError:
+        raise ValueError(
+            f"Invalid deadline format '{deadline}'. Use YYYY-MM-DD (e.g. 2026-06-20)."
+        )
+
     now_str = _now_iso()
     request: Dict = {
         "id": str(uuid.uuid4()),
@@ -108,6 +120,10 @@ def update_approver_status(
     """Update a single approver's status and log to audit trail.
 
     If all approvers are now 'approved', set request status to 'complete'.
+
+    The CLI exposes only 'reviewing', 'approved', and 'blocked' — not 'pending' —
+    because resetting an approver to pending is not a valid PM workflow.
+    The full _APPROVER_STATUSES set is used here for programmatic callers only.
     """
     if new_status not in _APPROVER_STATUSES:
         raise ValueError(f"Invalid approver status '{new_status}'. Must be one of: {_APPROVER_STATUSES}")
@@ -140,6 +156,7 @@ def update_approver_status(
                     )
                 break
         else:
+            # The for loop completed without hitting break — approver not found.
             raise ValueError(f"Approver '{approver_handle}' not found in request {request_id}")
 
         if all(a["status"] == "approved" for a in req["approvers"]):
@@ -329,6 +346,9 @@ def _build_parser() -> argparse.ArgumentParser:
         "--status",
         required=True,
         choices=["reviewing", "approved", "blocked"],
+        # Note: 'pending' is intentionally excluded — resetting to pending
+        # is not a valid PM workflow. Programmatic callers can use
+        # update_approver_status() directly if needed.
         help="New status.",
     )
     p_update.add_argument("--note", default=None, help="Optional note.")
