@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -15,7 +16,7 @@ import approval_tracker  # noqa: E402
 import notifier  # noqa: E402
 
 
-def run_reminders(dry_run: bool = False, request_id: Optional[str] = None) -> None:
+def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, digest: bool = False) -> None:
     """Process all pending reminders for open approval requests.
 
     Parameters
@@ -24,6 +25,8 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None) -> No
         When True, print what would be sent without actually calling notifier functions.
     request_id:
         When provided, only process the request with this ID (or prefix).
+    digest:
+        When True, batch reminders by approver handle and send one digest message per person.
     """
     now = datetime.now(timezone.utc)
 
@@ -50,17 +53,54 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None) -> No
         pending_pairs = [(req, appr) for req, appr in pending_pairs if req["id"] == full_id]
 
     reminder_count = 0
-    for req, approver in pending_pairs:
-        handle = approver["handle"]
-        title = req["title"]
-        if dry_run:
-            print(f"[dry-run] Would notify {handle} on '{title}'")
-        else:
-            # send_reminder degrades to stdout when SLACK_WEBHOOK_URL is unset,
-            # so we always record the notification regardless of the return value.
-            notifier.send_reminder(req, approver)
-            approval_tracker.record_notification(req["id"], handle)
-            reminder_count += 1
+    if digest:
+        pending_by_handle: dict[str, list[dict]] = defaultdict(list)
+        for req, approver in pending_pairs:
+            handle = approver["handle"]
+            deadline_str = req.get("deadline", "")
+            try:
+                deadline_dt = datetime.fromisoformat(deadline_str)
+                if deadline_dt.tzinfo is None:
+                    deadline_dt = deadline_dt.replace(tzinfo=timezone.utc)
+                days_until = (deadline_dt.date() - now.date()).days
+            except (ValueError, TypeError):
+                days_until = 0
+            pending_by_handle[handle].append(
+                {
+                    "request_id": req["id"],
+                    "title": req["title"],
+                    "doc_url": req["doc_url"],
+                    "deadline": deadline_str,
+                    "days_until": days_until,
+                    "status": approver.get("status", "pending"),
+                    "urgency_note": _digest_urgency_note(days_until, approver),
+                }
+            )
+
+        for handle, items in pending_by_handle.items():
+            if dry_run:
+                titles = ", ".join(item["title"] for item in items)
+                print(f"[dry-run] Would send digest to {handle} for: {titles}")
+                continue
+
+            # send_digest degrades to stdout when SLACK_WEBHOOK_URL is unset,
+            # so we always record the notifications regardless of the return value.
+            notifier.send_digest(handle, items)
+            for item in items:
+                approval_tracker.record_notification(item["request_id"], handle)
+            reminder_count += len(items)
+    else:
+        for req, approver in pending_pairs:
+            handle = approver["handle"]
+            title = req["title"]
+            if dry_run:
+                print(f"[dry-run] Would notify {handle} on '{title}'")
+            else:
+                # send_reminder degrades to stdout when SLACK_WEBHOOK_URL is unset,
+                # so we always record the notification regardless of the return value.
+                notifier.send_reminder(req, approver)
+                approval_tracker.record_notification(req["id"], handle)
+                reminder_count += 1
 
     # --- overdue alerts ---
     overdue_count = 0
@@ -129,12 +169,24 @@ def _mark_completion_notice_sent(request_id: str) -> None:
     approval_tracker.save_all(all_requests)
 
 
+def _digest_urgency_note(days_until: int, approver: dict) -> str:
+    count = approver.get("notification_count", 0) + 1
+    if count == 1:
+        return "A friendly nudge — your review would really help move this forward."
+    if count == 2:
+        return "This is getting time-sensitive."
+    if days_until <= 0:
+        return "⚠️ This is urgent — the deadline has passed and your approval is still needed."
+    return f"⚠️ Urgent — only {days_until} day{'s' if days_until != 1 else ''} left until the deadline."
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Send pending approval reminders.")
     parser.add_argument("--dry-run", action="store_true", help="Print what would be sent without sending.")
     parser.add_argument("--id", default=None, help="Only process the request with this ID (or prefix).")
+    parser.add_argument("--digest", action="store_true", help="Batch reminders by approver handle.")
     args = parser.parse_args()
-    run_reminders(dry_run=args.dry_run, request_id=args.id)
+    run_reminders(dry_run=args.dry_run, request_id=args.id, digest=args.digest)
 
 
 if __name__ == "__main__":

@@ -182,5 +182,53 @@ class TestFilterById(unittest.TestCase):
         self.assertNotIn("PRD Two", notified_titles)
 
 
+class TestDigestMode(unittest.TestCase):
+    def test_run_reminders_digest_groups_by_approver(self) -> None:
+        req1 = _open_request(title="PRD One", approver_statuses=[("@alice", "pending"), ("@bob", "pending")])
+        req2 = _open_request(title="PRD Two", approver_statuses=[("@alice", "pending")])
+
+        digest_calls: list[tuple[str, list[dict]]] = []
+        recorded_notifications: list[tuple[str, str]] = []
+
+        def fake_send_digest(handle, items):
+            digest_calls.append((handle, items))
+            return True
+
+        def fake_record_notification(request_id, handle):
+            recorded_notifications.append((request_id, handle))
+            return {}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = _write_approvals(tmp, [req1, req2])
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                    mock_notifier.send_digest.side_effect = fake_send_digest
+                    mock_notifier.send_reminder.return_value = True
+                    mock_notifier.send_overdue_alert.return_value = True
+                    mock_notifier.send_completion_notice.return_value = True
+                    with mock.patch.object(approval_tracker, "record_notification", side_effect=fake_record_notification):
+                        with mock.patch("builtins.print"):
+                            reminder_runner.run_reminders(digest=True)
+
+        self.assertEqual(len(digest_calls), 2)
+        handles = {handle for handle, _ in digest_calls}
+        self.assertEqual(handles, {"@alice", "@bob"})
+        self.assertGreaterEqual(len(recorded_notifications), 3)
+
+    def test_digest_dry_run_prints_grouped_output(self) -> None:
+        req = _open_request(title="PRD Digest", approver_statuses=[("@alice", "pending"), ("@bob", "pending")])
+
+        printed_lines: list[str] = []
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = _write_approvals(tmp, [req])
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with mock.patch("reminder_runner.notifier"):
+                    with mock.patch("builtins.print", side_effect=lambda *a, **k: printed_lines.append(str(a[0]) if a else "")):
+                        reminder_runner.run_reminders(dry_run=True, digest=True)
+
+        self.assertTrue(any("Would send digest" in line for line in printed_lines))
+
+
 if __name__ == "__main__":
     unittest.main()
