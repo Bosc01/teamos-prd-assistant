@@ -127,6 +127,36 @@ def send_reminder(request: Dict, approver: Dict) -> bool:
     return _post_to_slack(text)
 
 
+def send_digest(approver_handle: str, pending_items: list[Dict]) -> bool:
+    """Send one batched approval digest to a single approver."""
+    lines = ["Good morning! Here's your approval queue for today:"]
+    for index, item in enumerate(pending_items, start=1):
+        days_until = item.get("days_until")
+        if days_until is None:
+            deadline_text = f"due {item.get('deadline', 'soon')}"
+        elif days_until < 0:
+            overdue_days = abs(days_until)
+            deadline_text = f"overdue by {overdue_days} day{'s' if overdue_days != 1 else ''}"
+        elif days_until == 0:
+            deadline_text = "due today"
+        else:
+            deadline_text = f"due in {days_until} day{'s' if days_until != 1 else ''}"
+
+        status = item.get("status", "pending")
+        status_display = f"{_status_icon(status)} {status}"
+        urgency_note = item.get("urgency_note")
+        note_suffix = f" — {urgency_note}" if urgency_note else ""
+        lines.append(
+            f"{index}. {item.get('title', 'Untitled')} — {deadline_text} — {status_display} — {item.get('doc_url', '')}{note_suffix}"
+        )
+
+    lines.append(
+        "Reply with status updates using: python src/approval_tracker.py update --id [id] --approver [handle] --status approved"
+    )
+    text = "\n".join(lines)
+    return _post_to_slack(text)
+
+
 def send_completion_notice(request: Dict) -> bool:
     """Send a notification to the requester that all approvals are in."""
     approver_list = "  ".join(

@@ -37,6 +37,27 @@ def _make_approver(status: str = "pending", count: int = 0, note: str | None = N
     }
 
 
+def _make_digest_items() -> list[dict]:
+    return [
+        {
+            "title": "Terraform Cloud PRD",
+            "doc_url": "https://example.com/prd",
+            "deadline": "2099-12-31",
+            "days_until": 10,
+            "status": "pending",
+            "urgency_note": "A friendly nudge — your review would really help move this forward.",
+        },
+        {
+            "title": "Terraform Core RFC",
+            "doc_url": "https://example.com/rfc",
+            "deadline": "2099-12-15",
+            "days_until": 5,
+            "status": "reviewing",
+            "urgency_note": "This is getting time-sensitive.",
+        },
+    ]
+
+
 class TestSendReminderNoWebhook(unittest.TestCase):
     def test_send_reminder_without_webhook_prints_to_stdout_and_returns_false(self) -> None:
         req = _make_request()
@@ -111,6 +132,38 @@ class TestSendReminderUrgency(unittest.TestCase):
     def test_count_2_message_shows_deadline(self) -> None:
         text = self._get_message_text(count=1)  # count+1 = 2
         self.assertIn("2099-12-31", text)
+
+
+class TestSendDigest(unittest.TestCase):
+    def test_send_digest_posts_one_message_with_all_titles(self) -> None:
+        items = _make_digest_items()
+        mock_response = mock.MagicMock()
+        mock_response.raise_for_status.return_value = None
+
+        with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
+            with mock.patch("notifier._requests") as mock_requests_mod:
+                mock_requests_mod.post.return_value = mock_response
+                result = notifier.send_digest("@steve", items)
+
+        self.assertTrue(result)
+        mock_requests_mod.post.assert_called_once()
+        payload = mock_requests_mod.post.call_args.kwargs["json"]
+        self.assertIn("Good morning! Here's your approval queue for today:", payload["text"])
+        self.assertIn("Terraform Cloud PRD", payload["text"])
+        self.assertIn("Terraform Core RFC", payload["text"])
+
+    def test_send_digest_without_webhook_prints_to_stdout_and_returns_false(self) -> None:
+        items = _make_digest_items()
+
+        with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": ""}):
+            with mock.patch("builtins.print") as mock_print:
+                result = notifier.send_digest("@steve", items)
+
+        self.assertFalse(result)
+        self.assertTrue(mock_print.called)
+        printed_text = " ".join(str(call.args[0]) for call in mock_print.call_args_list if call.args)
+        self.assertIn("Terraform Cloud PRD", printed_text)
+        self.assertIn("Terraform Core RFC", printed_text)
 
 
 class TestSendCompletionNotice(unittest.TestCase):
