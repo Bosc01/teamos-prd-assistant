@@ -58,8 +58,6 @@ def create_request(
 
     Raises ValueError if deadline is not a valid ISO 8601 date (YYYY-MM-DD).
     """
-    # Validate deadline format before saving — an invalid date would silently
-    # cause get_pending_reminders() to skip this request forever.
     try:
         datetime.fromisoformat(deadline)
     except ValueError:
@@ -120,10 +118,6 @@ def update_approver_status(
     """Update a single approver's status and log to audit trail.
 
     If all approvers are now 'approved', set request status to 'complete'.
-
-    The CLI exposes only 'reviewing', 'approved', and 'blocked' — not 'pending' —
-    because resetting an approver to pending is not a valid PM workflow.
-    The full _APPROVER_STATUSES set is used here for programmatic callers only.
     """
     if new_status not in _APPROVER_STATUSES:
         raise ValueError(f"Invalid approver status '{new_status}'. Must be one of: {_APPROVER_STATUSES}")
@@ -156,7 +150,6 @@ def update_approver_status(
                     )
                 break
         else:
-            # The for loop completed without hitting break — approver not found.
             raise ValueError(f"Approver '{approver_handle}' not found in request {request_id}")
 
         if all(a["status"] == "approved" for a in req["approvers"]):
@@ -261,6 +254,94 @@ def cancel_request(request_id: str) -> Dict:
     raise ValueError(f"No approval request found with id: {request_id}")
 
 
+def dashboard(now: Optional[datetime] = None) -> str:
+    """Return a prioritized view of all open approval requests grouped by urgency.
+
+    Groups:
+      OVERDUE   - deadline has passed, still open
+      DUE SOON  - deadline within 3 days
+      HEALTHY   - deadline more than 3 days away
+
+    Within each group, requests are sorted by deadline ascending.
+    Blocked approvers are highlighted so they are immediately visible.
+    """
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    all_requests = load_all()
+    open_requests = [r for r in all_requests if r["status"] == "open"]
+
+    if not open_requests:
+        return "No open approval requests."
+
+    overdue: List[Dict] = []
+    due_soon: List[Dict] = []
+    healthy: List[Dict] = []
+
+    for req in open_requests:
+        try:
+            deadline_dt = datetime.fromisoformat(req["deadline"])
+            if deadline_dt.tzinfo is None:
+                deadline_dt = deadline_dt.replace(tzinfo=timezone.utc)
+        except (ValueError, KeyError):
+            healthy.append(req)
+            continue
+
+        days_remaining = (deadline_dt - now).days
+        if days_remaining < 0:
+            overdue.append(req)
+        elif days_remaining <= 3:
+            due_soon.append(req)
+        else:
+            healthy.append(req)
+
+    for group in (overdue, due_soon, healthy):
+        group.sort(key=lambda r: r.get("deadline", ""))
+
+    lines: List[str] = []
+
+    def _render_group(label: str, requests: List[Dict]) -> None:
+        if not requests:
+            return
+        lines.append(f"\n{label} ({len(requests)})")
+        lines.append("-" * 60)
+        for req in requests:
+            short_id = req["id"][:8]
+            title = req["title"][:40] + "..." if len(req["title"]) > 40 else req["title"]
+            deadline = req.get("deadline", "no deadline")[:10]
+            requester = req.get("requester", "unknown")
+            lines.append(f"  {short_id}  {title}")
+            lines.append(f"           Requester: {requester}  Deadline: {deadline}")
+            for approver in req.get("approvers", []):
+                icon = _STATUS_ICONS.get(approver["status"], "?")
+                note = f" -- {approver['status_note']}" if approver.get("status_note") else ""
+                pings = approver.get("notification_count", 0)
+                ping_str = f" ({pings} reminder{'s' if pings != 1 else ''} sent)" if pings else ""
+                lines.append(f"           {icon} {approver['handle']}  {approver['status']}{note}{ping_str}")
+            lines.append("")
+
+    lines.append("APPROVAL DASHBOARD")
+    lines.append("=" * 60)
+    _render_group("OVERDUE", overdue)
+    _render_group("DUE SOON", due_soon)
+    _render_group("HEALTHY", healthy)
+
+    total_blocked = sum(
+        1 for r in open_requests
+        for a in r.get("approvers", [])
+        if a["status"] == "blocked"
+    )
+    total_pending = sum(
+        1 for r in open_requests
+        for a in r.get("approvers", [])
+        if a["status"] in ("pending", "reviewing")
+    )
+    lines.append("-" * 60)
+    lines.append(f"  {len(open_requests)} open request(s)  |  {total_pending} awaiting response  |  {total_blocked} blocked")
+
+    return "\n".join(lines)
+
+
 def summary_table(requests: List[Dict]) -> str:
     """Return a human-readable ASCII table of all requests and approver statuses."""
     if not requests:
@@ -269,7 +350,7 @@ def summary_table(requests: List[Dict]) -> str:
     rows = []
     for req in requests:
         short_id = req["id"][:8]
-        title = req["title"][:27] + "…" if len(req["title"]) > 28 else req["title"]
+        title = req["title"][:27] + "..." if len(req["title"]) > 28 else req["title"]
         status = req["status"]
         deadline = req.get("deadline", "")[:10]
         approver_parts = []
@@ -309,7 +390,7 @@ def _format_audit_trail(req: Dict) -> str:
         event = entry.get("event", "")
         detail = entry.get("detail", "")
         if detail:
-            lines.append(f"  {ts}  {event}  — {detail}")
+            lines.append(f"  {ts}  {event}  -- {detail}")
         else:
             lines.append(f"  {ts}  {event}")
     return "\n".join(lines)
@@ -338,6 +419,9 @@ def _build_parser() -> argparse.ArgumentParser:
     p_status = sub.add_parser("status", help="Show status of approval requests.")
     p_status.add_argument("--id", help="Show a specific request by ID.")
 
+    # dashboard
+    sub.add_parser("dashboard", help="Show open requests grouped by urgency (overdue, due soon, healthy).")
+
     # update
     p_update = sub.add_parser("update", help="Update an approver's status.")
     p_update.add_argument("--id", required=True, help="Request ID (or prefix).")
@@ -346,9 +430,6 @@ def _build_parser() -> argparse.ArgumentParser:
         "--status",
         required=True,
         choices=["reviewing", "approved", "blocked"],
-        # Note: 'pending' is intentionally excluded — resetting to pending
-        # is not a valid PM workflow. Programmatic callers can use
-        # update_approver_status() directly if needed.
         help="New status.",
     )
     p_update.add_argument("--note", default=None, help="Optional note.")
@@ -403,6 +484,9 @@ def main() -> None:
             else:
                 print(summary_table(all_requests))
 
+    elif args.command == "dashboard":
+        print(dashboard())
+
     elif args.command == "update":
         full_id = _resolve_id(args.id)
         req = update_approver_status(
@@ -411,7 +495,7 @@ def main() -> None:
             new_status=args.status,
             note=args.note,
         )
-        print(f"Updated {args.approver} → {args.status}")
+        print(f"Updated {args.approver} -> {args.status}")
         print(summary_table([req]))
 
     elif args.command == "cancel":
