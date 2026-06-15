@@ -1,4 +1,8 @@
-"""Approval request tracking — create, manage, and query PRD/RFC approval requests."""
+"""Approval request tracking — create, manage, and query PRD/RFC approval requests.
+
+Run with no arguments to launch the interactive menu.
+Run with a subcommand for scripting (create, status, dashboard, update, reset, cancel, audit).
+"""
 
 from __future__ import annotations
 
@@ -54,10 +58,7 @@ def create_request(
     deadline: str,
     reminder_interval_days: int = 2,
 ) -> Dict:
-    """Create a new approval request, save to JSON, and return the record.
-
-    Raises ValueError if deadline is not a valid ISO 8601 date (YYYY-MM-DD).
-    """
+    """Create a new approval request, save to JSON, and return the record."""
     try:
         datetime.fromisoformat(deadline)
     except ValueError:
@@ -115,10 +116,7 @@ def update_approver_status(
     new_status: str,
     note: Optional[str] = None,
 ) -> Dict:
-    """Update a single approver's status and log to audit trail.
-
-    If all approvers are now 'approved', set request status to 'complete'.
-    """
+    """Update a single approver's status and log to audit trail."""
     if new_status not in _APPROVER_STATUSES:
         raise ValueError(f"Invalid approver status '{new_status}'. Must be one of: {_APPROVER_STATUSES}")
 
@@ -162,6 +160,37 @@ def update_approver_status(
                 }
             )
 
+        save_all(all_requests)
+        return req
+
+    raise ValueError(f"No approval request found with id: {request_id}")
+
+
+def reset_request(request_id: str) -> Dict:
+    """Reset all approvers on a request back to pending and reopen if complete."""
+    all_requests = load_all()
+    now_str = _now_iso()
+
+    for req in all_requests:
+        if req["id"] != request_id:
+            continue
+
+        for approver in req["approvers"]:
+            approver["status"] = "pending"
+            approver["status_note"] = None
+            approver["status_updated_at"] = now_str
+            approver["last_notified_at"] = None
+            approver["notification_count"] = 0
+
+        req["status"] = "open"
+        req["completion_notice_sent"] = False
+        req["audit_trail"].append(
+            {
+                "timestamp": now_str,
+                "event": "reset",
+                "detail": "All approvers reset to pending.",
+            }
+        )
         save_all(all_requests)
         return req
 
@@ -255,16 +284,7 @@ def cancel_request(request_id: str) -> Dict:
 
 
 def dashboard(now: Optional[datetime] = None) -> str:
-    """Return a prioritized view of all open approval requests grouped by urgency.
-
-    Groups:
-      OVERDUE   - deadline has passed, still open
-      DUE SOON  - deadline within 3 days
-      HEALTHY   - deadline more than 3 days away
-
-    Within each group, requests are sorted by deadline ascending.
-    Blocked approvers are highlighted so they are immediately visible.
-    """
+    """Return a prioritized view of all open approval requests grouped by urgency."""
     if now is None:
         now = datetime.now(timezone.utc)
 
@@ -396,51 +416,247 @@ def _format_audit_trail(req: Dict) -> str:
     return "\n".join(lines)
 
 
+def _pick_request(prompt: str = "Select a request") -> Optional[Dict]:
+    """Show numbered list of open requests and return the one the user picks."""
+    all_requests = load_all()
+    open_requests = [r for r in all_requests if r["status"] == "open"]
+    if not open_requests:
+        print("No open requests found.")
+        return None
+    print(f"\n{prompt}:")
+    for i, req in enumerate(open_requests, 1):
+        short_id = req["id"][:8]
+        title = req["title"][:40] + "..." if len(req["title"]) > 40 else req["title"]
+        deadline = req.get("deadline", "")[:10]
+        print(f"  {i}. {title}  (id: {short_id}  deadline: {deadline})")
+    choice = input("\nEnter number: ").strip()
+    try:
+        idx = int(choice) - 1
+        if 0 <= idx < len(open_requests):
+            return open_requests[idx]
+    except ValueError:
+        pass
+    print("Invalid selection.")
+    return None
+
+
+def _pick_approver(req: Dict, prompt: str = "Select an approver") -> Optional[str]:
+    """Show numbered list of approvers on a request and return the chosen handle."""
+    approvers = req.get("approvers", [])
+    if not approvers:
+        print("No approvers on this request.")
+        return None
+    print(f"\n{prompt}:")
+    for i, a in enumerate(approvers, 1):
+        icon = _STATUS_ICONS.get(a["status"], "?")
+        note = f"  -- {a['status_note']}" if a.get("status_note") else ""
+        print(f"  {i}. {a['handle']}  {icon} {a['status']}{note}")
+    choice = input("\nEnter number: ").strip()
+    try:
+        idx = int(choice) - 1
+        if 0 <= idx < len(approvers):
+            return approvers[idx]["handle"]
+    except ValueError:
+        pass
+    print("Invalid selection.")
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Interactive menu
+# ---------------------------------------------------------------------------
+
+def _menu_create() -> None:
+    print("\n-- Create new approval request --")
+    title = input("Document title: ").strip()
+    if not title:
+        print("Title is required.")
+        return
+    url = input("Document URL: ").strip()
+    requester = input("Your Slack handle (e.g. @harekas): ").strip()
+    approvers_raw = input("Approver handles, space-separated (e.g. @sarah @gerald): ").strip()
+    approvers = [h.strip() for h in approvers_raw.split() if h.strip()]
+    if not approvers:
+        print("At least one approver is required.")
+        return
+    deadline = input("Deadline (YYYY-MM-DD): ").strip()
+    try:
+        req = create_request(
+            title=title,
+            doc_url=url,
+            requester=requester,
+            approvers=approvers,
+            deadline=deadline,
+        )
+        print(f"\nCreated request: {req['id'][:8]}")
+        print(summary_table([req]))
+    except ValueError as e:
+        print(f"Error: {e}")
+
+
+def _menu_update() -> None:
+    print("\n-- Update approver status --")
+    req = _pick_request("Which request?")
+    if req is None:
+        return
+    handle = _pick_approver(req, "Which approver?")
+    if handle is None:
+        return
+    print("\nNew status:")
+    print("  1. reviewing")
+    print("  2. approved")
+    print("  3. blocked")
+    status_choice = input("\nEnter number: ").strip()
+    status_map = {"1": "reviewing", "2": "approved", "3": "blocked"}
+    new_status = status_map.get(status_choice)
+    if not new_status:
+        print("Invalid selection.")
+        return
+    note = None
+    if new_status == "blocked":
+        note = input("Blocker note (optional, press Enter to skip): ").strip() or None
+    try:
+        updated = update_approver_status(req["id"], handle, new_status, note)
+        print(f"\nUpdated {handle} -> {new_status}")
+        print(summary_table([updated]))
+    except ValueError as e:
+        print(f"Error: {e}")
+
+
+def _menu_reset() -> None:
+    print("\n-- Reset request --")
+    req = _pick_request("Which request do you want to reset?")
+    if req is None:
+        return
+    confirm = input(f"Reset all approvers on '{req['title']}' back to pending? (y/n): ").strip().lower()
+    if confirm != "y":
+        print("Cancelled.")
+        return
+    try:
+        updated = reset_request(req["id"])
+        print("\nReset complete.")
+        print(summary_table([updated]))
+    except ValueError as e:
+        print(f"Error: {e}")
+
+
+def _menu_cancel() -> None:
+    print("\n-- Cancel request --")
+    all_requests = load_all()
+    open_requests = [r for r in all_requests if r["status"] == "open"]
+    if not open_requests:
+        print("No open requests to cancel.")
+        return
+    print("\nSelect a request to cancel:")
+    for i, req in enumerate(open_requests, 1):
+        print(f"  {i}. {req['title']}  (id: {req['id'][:8]})")
+    choice = input("\nEnter number: ").strip()
+    try:
+        idx = int(choice) - 1
+        if 0 <= idx < len(open_requests):
+            req = open_requests[idx]
+            confirm = input(f"Cancel '{req['title']}'? (y/n): ").strip().lower()
+            if confirm == "y":
+                cancel_request(req["id"])
+                print("Cancelled.")
+            else:
+                print("Aborted.")
+            return
+    except ValueError:
+        pass
+    print("Invalid selection.")
+
+
+def _menu_audit() -> None:
+    print("\n-- View audit trail --")
+    all_requests = load_all()
+    if not all_requests:
+        print("No requests found.")
+        return
+    print("\nSelect a request:")
+    for i, req in enumerate(all_requests, 1):
+        print(f"  {i}. {req['title']}  ({req['status']})  id: {req['id'][:8]}")
+    choice = input("\nEnter number: ").strip()
+    try:
+        idx = int(choice) - 1
+        if 0 <= idx < len(all_requests):
+            print("\n" + _format_audit_trail(all_requests[idx]))
+            return
+    except ValueError:
+        pass
+    print("Invalid selection.")
+
+
+def run_interactive_menu() -> None:
+    """Launch the interactive menu. Runs until the user exits."""
+    print("\nAPPROVAL TRACKER")
+    print("================")
+    while True:
+        print("\n1. View dashboard")
+        print("2. Create new request")
+        print("3. Update approver status")
+        print("4. View audit trail")
+        print("5. Reset a request")
+        print("6. Cancel a request")
+        print("0. Exit")
+        choice = input("\nChoose an option: ").strip()
+
+        if choice == "1":
+            print("\n" + dashboard())
+        elif choice == "2":
+            _menu_create()
+        elif choice == "3":
+            _menu_update()
+        elif choice == "4":
+            _menu_audit()
+        elif choice == "5":
+            _menu_reset()
+        elif choice == "6":
+            _menu_cancel()
+        elif choice == "0":
+            print("Bye.")
+            break
+        else:
+            print("Invalid option, try again.")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Manage approval requests for PRDs, RFCs, and specs."
+        description="Manage approval requests for PRDs, RFCs, and specs. Run with no arguments for interactive mode."
     )
-    sub = parser.add_subparsers(dest="command", required=True)
+    sub = parser.add_subparsers(dest="command")
 
-    # create
     p_create = sub.add_parser("create", help="Create a new approval request.")
-    p_create.add_argument("--title", required=True, help="Title of the document.")
-    p_create.add_argument("--url", required=True, help="Link to the document.")
-    p_create.add_argument("--requester", required=True, help="Slack handle of the requester.")
-    p_create.add_argument("--approvers", nargs="+", required=True, help="Slack handles of approvers.")
-    p_create.add_argument("--deadline", required=True, help="Deadline date (YYYY-MM-DD).")
-    p_create.add_argument("--reminder-days", type=int, default=2, help="Reminder interval in days.")
+    p_create.add_argument("--title", required=True)
+    p_create.add_argument("--url", required=True)
+    p_create.add_argument("--requester", required=True)
+    p_create.add_argument("--approvers", nargs="+", required=True)
+    p_create.add_argument("--deadline", required=True)
+    p_create.add_argument("--reminder-days", type=int, default=2)
 
-    # status
     p_status = sub.add_parser("status", help="Show status of approval requests.")
     p_status.add_argument("--id", help="Show a specific request by ID.")
 
-    # dashboard
-    sub.add_parser("dashboard", help="Show open requests grouped by urgency (overdue, due soon, healthy).")
+    sub.add_parser("dashboard", help="Show open requests grouped by urgency.")
 
-    # update
     p_update = sub.add_parser("update", help="Update an approver's status.")
-    p_update.add_argument("--id", required=True, help="Request ID (or prefix).")
-    p_update.add_argument("--approver", required=True, help="Approver handle.")
-    p_update.add_argument(
-        "--status",
-        required=True,
-        choices=["reviewing", "approved", "blocked"],
-        help="New status.",
-    )
-    p_update.add_argument("--note", default=None, help="Optional note.")
+    p_update.add_argument("--id", required=True)
+    p_update.add_argument("--approver", required=True)
+    p_update.add_argument("--status", required=True, choices=["reviewing", "approved", "blocked"])
+    p_update.add_argument("--note", default=None)
 
-    # cancel
+    p_reset = sub.add_parser("reset", help="Reset all approvers on a request back to pending.")
+    p_reset.add_argument("--id", required=True)
+
     p_cancel = sub.add_parser("cancel", help="Cancel an approval request.")
-    p_cancel.add_argument("--id", required=True, help="Request ID (or prefix).")
+    p_cancel.add_argument("--id", required=True)
 
-    # audit
     p_audit = sub.add_parser("audit", help="Show audit trail for a request.")
-    p_audit.add_argument("--id", required=True, help="Request ID (or prefix).")
+    p_audit.add_argument("--id", required=True)
 
     return parser
 
@@ -459,6 +675,11 @@ def _resolve_id(partial_id: str) -> str:
 def main() -> None:
     parser = _build_parser()
     args = parser.parse_args()
+
+    # No subcommand — launch interactive menu
+    if not args.command:
+        run_interactive_menu()
+        return
 
     if args.command == "create":
         req = create_request(
@@ -496,6 +717,12 @@ def main() -> None:
             note=args.note,
         )
         print(f"Updated {args.approver} -> {args.status}")
+        print(summary_table([req]))
+
+    elif args.command == "reset":
+        full_id = _resolve_id(args.id)
+        req = reset_request(full_id)
+        print("Reset complete.")
         print(summary_table([req]))
 
     elif args.command == "cancel":
