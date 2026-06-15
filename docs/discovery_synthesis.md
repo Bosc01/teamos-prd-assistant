@@ -1,14 +1,13 @@
 # TeamOS Discovery: What We Heard
-*PM Interviews — Steve Speicher & Garvita Rai | June 2026*
-*Conducted by Harekas Bindra, PM Intern*
+*17 PM interviews conducted April - June 2026*
+*Harekas Bindra, PM Intern | IBM HashiCorp*
 
 ---
 
-## What We're Building
-
-TeamOS is an internal tool for HashiCorp PMs — a shared brain for product context,
-decisions, and cross-team work. We're in the discovery phase, interviewing PMs to
-understand where the biggest daily friction lives before writing a line of product code.
+The same problems came up across 17 interviews with PMs, directors, and field teams.
+Different roles, different products, different seniority levels - same friction.
+This document summarizes what we found and connects it directly to what this
+prototype is built to address.
 
 ---
 
@@ -16,77 +15,89 @@ understand where the biggest daily friction lives before writing a line of produ
 
 | Name | Role |
 |---|---|
-| **Steve Speicher** | PM, Terraform Actions & Ansible Integration |
-| **Garvita Rai** | PM, Terraform Core & Core Cloud (apply, plan, CLI) |
+| Paul Thrasher | Director of Product Management |
+| Sarah Hernandez | PM, Terraform Stacks |
+| Marc Cosentino | Group PM, Terraform Integrations |
+| Gerald Dagher | PM, Agentic Experiences Platform |
+| Jake Lundberg | Field CTO |
+| Frederic Lavigne | PM, Terraform Enterprise |
+| Richard Rundle | PM, Terraform Enterprise |
+| Chris Griggs | PM, Atlas / TFE |
+| David Leeper | PM, Visibility Team |
+| Garvita Rai | PM, Terraform Core and Core Cloud |
+| Steve Speicher | PM, Terraform Actions and Ansible |
+| Anya Stettler | PM, Vault Enterprise |
+| Roshan Chandna | PM, Agent Experience |
+| Vansh Munjal | PM, Terraform Stacks |
+| Siteng Yu | PM, Vault Radar and Run Tasks |
+| Sharanaa Fathima Safiudeen | PM, Terraform Search |
+| V Paul | PM, Terraform Policy |
 
 ---
 
-## What We Heard: Three Themes That Came Up From Both, Unprompted
+## The Three Problems That Came Up in Every Interview
 
-### 1. Follow-ups are consuming PM time that should go to actual product work
+### 1. Sign-off workflows stall with no audit trail
 
-Both Steve and Garvita independently named manual follow-up work as one of their
-biggest weekly costs. Garvita, when asked what TeamOS should remove from her week:
+Hermes sends one notification when an approver is added. After that, silence.
+Approvers have no way to signal status back. PMs ping manually, two or three times
+per approval, with no record that they did it. Silence and blocked look identical
+to the requester. This came up unprompted in 15 of 17 interviews.
 
-> *"All the follow-ups might be nice... it's non-value-add work, whereas you could
-> be spending time writing PRDs or doing customer interviews — and instead you're
-> pinging people and following up."*
+The Approval Tracker in this repo is a direct response to this problem. It addresses
+the core loop: notify, remind on a schedule, track status per approver, log everything.
 
-Steve, describing his actual personal reminder system for stalled approvals:
+### 2. Context is fragmented and never recoverable
 
-> *"You get pinged, then you wait a week, get pinged again — divide by two at that
-> time interval — until they keep getting pinged faster and faster until they do it."*
+Product context lives across Hermes, SharePoint, Google Docs, Slack, email, and
+personal spreadsheets simultaneously. No index exists. Discovery happens by accident
+or by asking a long-tenured colleague. When people leave - or when an acquisition
+happens - institutional knowledge leaves with them.
 
-### 2. Approval stalls are invisible — silence and "blocked" look the same
+The IBM acquisition specifically removed Google Docs, the Hermes search experience,
+and the IPL field notes email distro with no equivalent replacement for any of them.
 
-Sign-offs on PRDs, RFCs, and specs consistently stall. Hermes sends one email when
-an approver is added, then nothing. Approvers live in Slack and VS Code, not email.
+Gerald Dagher named the principle that should govern any fix: the difference between
+a tool that asks people to add information and one that pulls from where information
+already lives. A tool that requires manual input will be abandoned. A tool that reads
+from existing sources does not compete for attention.
 
-Garvita: *"I don't think I've seen anyone approve timely without being pushed."*
+The Document Store module in this repo is early groundwork toward this layer.
 
-The deeper problem: there is no way for an approver to communicate status back.
-No way to say "I'm reviewing this," "I need a week," or "I'm waiting on X."
+### 3. Customer access is broken and unscalable
 
-Garvita: *"There's no way for people to say 'I'm reviewing this' or 'I'll have time
-in a week.' There's a lack of transparency there for sure."*
+Getting to the right customer requires opening a Jira feature request, checking Vivun
+for tagged customers, looking up the SE per account in Salesforce, and reaching out
+to each one individually on Slack. Multiple PMs described spending hours on this
+process for a single research cycle - and still not getting interviews.
 
-Steve: after pinging someone multiple times, there is no audit trail — it can look
-like the PM never followed up at all.
+Field CTO notes exist but are effectively undiscoverable since moving from an email
+distro to a W3 blog format. Cross-PM customer notes disappeared with the IPL field
+notes system and have not been replaced.
 
-### 3. PLC process overhead: right intent, wrong execution
-
-Both described PLC as well-intentioned but over-indexed. Neither wants to eliminate
-process — they want it scoped to what is actually relevant for their work type.
-
-Garvita: *"They over-indexed on how many things people should do. It's just way too
-time consuming."*
-
-Steve: *"It's 100 things to go through, and 80 aren't relevant."*
-
----
-
-## What We're Working On First
-
-**Automated Approval Tracking & Reminder System**
-
-When a PM creates an approval request linking to a PRD, RFC, or spec, the system:
-- Notifies all required approvers via Slack
-- Automatically re-notifies on a configurable reminder schedule
-- Lets approvers update their status: *reviewing / approved / blocked on X*
-- Maintains a full audit trail of every notification and status change
-- Surfaces what is pending, who is stalled, and why
-
-This directly removes the most time-consuming non-value-add work both PMs described.
+The GitHub Signal Pipeline in this repo addresses one slice of this: surfacing OSS
+customer signal from public GitHub issues without manual outreach.
 
 ---
 
-## What We Still Need to Learn
+## What This Prototype Covers
 
-- How does Hermes handle approvers today — is there an API or webhook we can connect to?
-- Is Slack the right channel for everyone, or do some approvers prefer email?
-- Who determines the approver list for a given PRD?
-- Do commercial platform PMs share the same approval stall pattern?
+| Problem | Module | Status |
+|---|---|---|
+| Sign-off workflows stall | Approval Tracker | Functional |
+| OSS signal requires manual outreach | GitHub Signal Pipeline | Functional |
+| PM knowledge artifacts unorganized | Document Store | In progress |
 
 ---
 
-*Harekas Bindra | PM Intern, TeamOS | IBM HashiCorp*
+## What Is Not Yet Built
+
+- Hermes integration for the Approval Tracker
+- Jira and Salesforce connectors for the SE outreach loop
+- LLM summarization on top of the signal pipeline clusters
+- A shared dashboard view across approvals and signals
+- The full context recovery layer Gerald described
+
+---
+
+*Harekas Bindra | PM Intern, Team OS Working Group | IBM HashiCorp*
