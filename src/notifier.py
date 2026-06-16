@@ -194,3 +194,31 @@ def send_overdue_alert(request: Dict) -> bool:
         f"{pending_str}"
     )
     return _post_to_slack(text)
+
+
+def send_reviewing_notice(request: Dict, approver: Dict) -> bool:
+    """Notify the requester that an approver is actively reviewing."""
+    requester = request.get("requester", "requester")
+    handle = approver["handle"]
+    text = (
+        f"*🔍 In review: {request['title']}*\n\n"
+        f"*{requester}*, {handle} is currently reviewing your document.\n"
+        f"*Document:* {request['doc_url']}\n"
+        f"*Deadline:* {_deadline_label(request.get('deadline', ''))}"
+    )
+    return _post_to_slack(text)
+
+
+def send_blocked_notice(request: Dict, approver: Dict) -> bool:
+    """Notify the requester that an approver is blocked, including the blocker note."""
+    requester = request.get("requester", "requester")
+    handle = approver["handle"]
+    note = approver.get("status_note") or "no note provided"
+    text = (
+        f"*🚫 Blocked: {request['title']}*\n\n"
+        f"*{requester}*, {handle} is blocked on your document and needs your attention.\n"
+        f"*Reason:* {note}\n"
+        f"*Document:* {request['doc_url']}\n"
+        f"*Deadline:* {_deadline_label(request.get('deadline', ''))}"
+    )
+    return _post_to_slack(text)

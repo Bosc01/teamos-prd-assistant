@@ -224,7 +224,12 @@ def record_notification(request_id: str, approver_handle: str) -> Dict:
 
 
 def get_pending_reminders(now: Optional[datetime] = None) -> List[tuple]:
-    """Return (request, approver) pairs that are due for a reminder."""
+    """Return (request, approver) pairs that are due for a reminder.
+
+    Only includes approvers in ``pending`` status. Approvers who are
+    ``reviewing`` or ``blocked`` are excluded — use :func:`get_reviewing_requests`
+    and :func:`get_blocked_requests` to surface those to the requester instead.
+    """
     if now is None:
         now = datetime.now(timezone.utc)
 
@@ -244,9 +249,7 @@ def get_pending_reminders(now: Optional[datetime] = None) -> List[tuple]:
 
         interval = int(req.get("reminder_interval_days", 2))
         for approver in req.get("approvers", []):
-            if approver["status"] == "approved":
-                continue
-            if approver["status"] not in ("pending", "reviewing", "blocked"):
+            if approver["status"] != "pending":
                 continue
 
             last_notified = approver.get("last_notified_at")
@@ -260,6 +263,36 @@ def get_pending_reminders(now: Optional[datetime] = None) -> List[tuple]:
                     due.append((req, approver))
 
     return due
+
+
+def get_reviewing_requests(now: Optional[datetime] = None) -> List[tuple]:
+    """Return (request, approver) pairs where an approver is actively reviewing."""
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    reviewing: List[tuple] = []
+    for req in load_all():
+        if req["status"] != "open":
+            continue
+        for approver in req.get("approvers", []):
+            if approver["status"] == "reviewing":
+                reviewing.append((req, approver))
+    return reviewing
+
+
+def get_blocked_requests(now: Optional[datetime] = None) -> List[tuple]:
+    """Return (request, approver) pairs where an approver is blocked, with blocker note."""
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    blocked: List[tuple] = []
+    for req in load_all():
+        if req["status"] != "open":
+            continue
+        for approver in req.get("approvers", []):
+            if approver["status"] == "blocked":
+                blocked.append((req, approver))
+    return blocked
 
 
 def cancel_request(request_id: str) -> Dict:

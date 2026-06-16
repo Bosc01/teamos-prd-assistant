@@ -235,5 +235,104 @@ class TestSummaryTable(unittest.TestCase):
         self.assertIn("No approval requests", result)
 
 
+class TestResetRequest(unittest.TestCase):
+    def test_reset_sets_all_approvers_to_pending(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                req = approval_tracker.create_request(
+                    title="Reset Test",
+                    doc_url="https://example.com",
+                    requester="@pm",
+                    approvers=["@alice", "@bob"],
+                    deadline="2099-12-31",
+                )
+                approval_tracker.update_approver_status(req["id"], "@alice", "reviewing")
+                approval_tracker.update_approver_status(req["id"], "@bob", "blocked", note="needs info")
+                updated = approval_tracker.reset_request(req["id"])
+
+        for approver in updated["approvers"]:
+            self.assertEqual(approver["status"], "pending")
+
+    def test_reset_reopens_completed_request(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                req = approval_tracker.create_request(
+                    title="Complete Reset",
+                    doc_url="https://example.com",
+                    requester="@pm",
+                    approvers=["@alice"],
+                    deadline="2099-12-31",
+                )
+                approval_tracker.update_approver_status(req["id"], "@alice", "approved")
+                completed = approval_tracker.get_request(req["id"])
+                self.assertEqual(completed["status"], "complete")
+                updated = approval_tracker.reset_request(req["id"])
+
+        self.assertEqual(updated["status"], "open")
+
+    def test_reset_clears_approver_fields(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                req = approval_tracker.create_request(
+                    title="Field Clear Test",
+                    doc_url="https://example.com",
+                    requester="@pm",
+                    approvers=["@alice"],
+                    deadline="2099-12-31",
+                )
+                approval_tracker.update_approver_status(req["id"], "@alice", "blocked", note="some block")
+                approval_tracker.record_notification(req["id"], "@alice")
+                updated = approval_tracker.reset_request(req["id"])
+
+        approver = updated["approvers"][0]
+        self.assertIsNone(approver["status_note"])
+        self.assertIsNone(approver["last_notified_at"])
+        self.assertEqual(approver["notification_count"], 0)
+        self.assertIsNotNone(approver["status_updated_at"])
+
+    def test_reset_sets_completion_notice_sent_to_false(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                req = approval_tracker.create_request(
+                    title="Notice Reset",
+                    doc_url="https://example.com",
+                    requester="@pm",
+                    approvers=["@alice"],
+                    deadline="2099-12-31",
+                )
+                approval_tracker.update_approver_status(req["id"], "@alice", "approved")
+                updated = approval_tracker.reset_request(req["id"])
+
+        self.assertFalse(updated["completion_notice_sent"])
+
+    def test_reset_appends_reset_event_to_audit_trail(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                req = approval_tracker.create_request(
+                    title="Audit Reset",
+                    doc_url="https://example.com",
+                    requester="@pm",
+                    approvers=["@alice"],
+                    deadline="2099-12-31",
+                )
+                updated = approval_tracker.reset_request(req["id"])
+
+        events = [entry["event"] for entry in updated["audit_trail"]]
+        self.assertIn("reset", events)
+
+    def test_reset_nonexistent_id_raises_value_error(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            approvals_file.write_text("[]")
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with self.assertRaises(ValueError):
+                    approval_tracker.reset_request("nonexistent-id-that-does-not-exist")
+
+
 if __name__ == "__main__":
     unittest.main()

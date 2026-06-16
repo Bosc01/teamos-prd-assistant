@@ -41,10 +41,14 @@ class ClusterTopicsTests(unittest.TestCase):
             summary = temp_root / "topic_clusters.csv"
             processed.write_text(json.dumps(insights), encoding="utf-8")
 
-            with mock.patch.object(cluster_topics, "PROCESSED_FILE", processed), mock.patch.object(
-                cluster_topics, "CLUSTERED_FILE", clustered
-            ), mock.patch.object(cluster_topics, "CLUSTER_SUMMARY_FILE", summary):
-                cluster_topics.cluster_topics(n_clusters=10)
+            with mock.patch("cluster_topics.SentenceTransformer") as mock_st_class:
+                mock_model = mock_st_class.return_value
+                mock_model.encode.side_effect = lambda texts, **kwargs: np.random.rand(len(texts), 384)
+
+                with mock.patch.object(cluster_topics, "PROCESSED_FILE", processed), mock.patch.object(
+                    cluster_topics, "CLUSTERED_FILE", clustered
+                ), mock.patch.object(cluster_topics, "CLUSTER_SUMMARY_FILE", summary):
+                    cluster_topics.cluster_topics(n_clusters=10)
 
             clustered_rows = json.loads(clustered.read_text(encoding="utf-8"))
             self.assertEqual(len(clustered_rows), len(insights))
