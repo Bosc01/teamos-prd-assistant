@@ -230,5 +230,64 @@ class TestDigestMode(unittest.TestCase):
         self.assertTrue(any("Would send digest" in line for line in printed_lines))
 
 
+class TestStateAwareReminders(unittest.TestCase):
+    def test_reviewing_approver_not_in_pending_reminders(self) -> None:
+        req = _open_request(approver_statuses=[("@alice", "reviewing")])
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = _write_approvals(tmp, [req])
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                    mock_notifier.send_reminder.return_value = True
+                    mock_notifier.send_reviewing_notice.return_value = True
+                    with mock.patch("builtins.print"):
+                        reminder_runner.run_reminders()
+
+        mock_notifier.send_reminder.assert_not_called()
+
+    def test_blocked_approver_not_in_pending_reminders(self) -> None:
+        req = _open_request(approver_statuses=[("@alice", "blocked")])
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = _write_approvals(tmp, [req])
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                    mock_notifier.send_reminder.return_value = True
+                    mock_notifier.send_blocked_notice.return_value = True
+                    with mock.patch("builtins.print"):
+                        reminder_runner.run_reminders()
+
+        mock_notifier.send_reminder.assert_not_called()
+
+    def test_reviewing_dry_run_prints_requester_notice(self) -> None:
+        req = _open_request(approver_statuses=[("@alice", "reviewing")])
+
+        printed_lines: list[str] = []
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = _write_approvals(tmp, [req])
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with mock.patch("reminder_runner.notifier"):
+                    with mock.patch("builtins.print", side_effect=lambda *a, **k: printed_lines.append(str(a[0]) if a else "")):
+                        reminder_runner.run_reminders(dry_run=True)
+
+        self.assertTrue(any("reviewing" in line for line in printed_lines))
+
+    def test_blocked_dry_run_prints_requester_notice_with_note(self) -> None:
+        req = _open_request(approver_statuses=[("@alice", "blocked")])
+        req["approvers"][0]["status_note"] = "Need PLC guidance"
+
+        printed_lines: list[str] = []
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = _write_approvals(tmp, [req])
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with mock.patch("reminder_runner.notifier"):
+                    with mock.patch("builtins.print", side_effect=lambda *a, **k: printed_lines.append(str(a[0]) if a else "")):
+                        reminder_runner.run_reminders(dry_run=True)
+
+        self.assertTrue(any("blocked" in line for line in printed_lines))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -45,12 +45,20 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
 
     open_requests = [r for r in all_requests if r.get("status") == "open"]
 
-    # --- reminders for due approvers ---
+    # --- reminders for due approvers (pending only) ---
     pending_pairs = approval_tracker.get_pending_reminders(now=now)
     if request_id:
         # Filter pairs to only the specified request
         full_id = all_requests[0]["id"]
         pending_pairs = [(req, appr) for req, appr in pending_pairs if req["id"] == full_id]
+
+    # --- surface reviewing/blocked states to the requester ---
+    reviewing_pairs = approval_tracker.get_reviewing_requests(now=now)
+    blocked_pairs = approval_tracker.get_blocked_requests(now=now)
+    if request_id:
+        full_id = all_requests[0]["id"]
+        reviewing_pairs = [(req, appr) for req, appr in reviewing_pairs if req["id"] == full_id]
+        blocked_pairs = [(req, appr) for req, appr in blocked_pairs if req["id"] == full_id]
 
     reminder_count = 0
     if digest:
@@ -101,6 +109,27 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
                 notifier.send_reminder(req, approver)
                 approval_tracker.record_notification(req["id"], handle)
                 reminder_count += 1
+
+    # --- surface reviewing states to the requester ---
+    for req, approver in reviewing_pairs:
+        requester = req.get("requester", "requester")
+        handle = approver["handle"]
+        title = req["title"]
+        if dry_run:
+            print(f"[dry-run] Would notify {requester}: {handle} is actively reviewing '{title}'")
+        else:
+            notifier.send_reviewing_notice(req, approver)
+
+    # --- surface blocked states to the requester ---
+    for req, approver in blocked_pairs:
+        requester = req.get("requester", "requester")
+        handle = approver["handle"]
+        title = req["title"]
+        note = approver.get("status_note") or "no note provided"
+        if dry_run:
+            print(f"[dry-run] Would notify {requester}: {handle} is blocked on '{title}' — {note}")
+        else:
+            notifier.send_blocked_notice(req, approver)
 
     # --- overdue alerts ---
     overdue_count = 0

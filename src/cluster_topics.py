@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, DefaultDict, Dict, List
 
 import numpy as np
+from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
 from config import DEFAULT_N_CLUSTERS, default_cluster_count
@@ -180,6 +181,12 @@ def cluster_topics(n_clusters: int = DEFAULT_N_CLUSTERS) -> None:
     if valid_documents:
         valid_indices = [index for index, _ in valid_documents]
         valid_texts = [document for _, document in valid_documents]
+
+        # Use sentence-transformers embeddings for clustering
+        _st_model = SentenceTransformer('all-MiniLM-L6-v2')
+        embeddings = np.array(_st_model.encode(valid_texts))
+
+        # TF-IDF is still used for generating human-readable cluster labels
         vectorizer = TfidfVectorizer(stop_words=combined_stop_words, ngram_range=(1, 2), max_features=5000)
 
         try:
@@ -195,17 +202,18 @@ def cluster_topics(n_clusters: int = DEFAULT_N_CLUSTERS) -> None:
             filtered_texts = [valid_texts[index] for index, keep in enumerate(non_zero_mask) if keep]
 
             if filtered_indices:
-                filtered_matrix = tfidf_matrix[non_zero_mask]
+                filtered_embeddings = embeddings[non_zero_mask]
                 cluster_count = min(cluster_count, len(filtered_indices), len(set(filtered_texts)))
 
                 if cluster_count == 1:
-                    cluster_ids = np.zeros(filtered_matrix.shape[0], dtype=int)
+                    cluster_ids = np.zeros(filtered_embeddings.shape[0], dtype=int)
                 else:
                     kmeans = KMeans(n_clusters=cluster_count, random_state=42, n_init=10)
-                    cluster_ids = np.asarray(kmeans.fit_predict(filtered_matrix))
+                    cluster_ids = np.asarray(kmeans.fit_predict(filtered_embeddings))
 
+                filtered_tfidf = tfidf_matrix[non_zero_mask]
                 feature_names = list(vectorizer.get_feature_names_out())
-                labels = _cluster_labels(filtered_matrix, cluster_ids, feature_names)
+                labels = _cluster_labels(filtered_tfidf, cluster_ids, feature_names)
 
                 for issue_index, cluster_id in zip(filtered_indices, cluster_ids):
                     clustered_assignments[issue_index] = (int(cluster_id), labels[int(cluster_id)])
