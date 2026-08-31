@@ -118,6 +118,22 @@ class TestOverdueAlert(unittest.TestCase):
         mock_notifier.send_overdue_alert.assert_not_called()
 
 
+class TestOverdueAlertCooldown(unittest.TestCase):
+    def test_exactly_one_overdue_alert_across_three_consecutive_runs(self) -> None:
+        past_deadline = (datetime.now(timezone.utc) - timedelta(days=2)).date().isoformat()
+        req = _open_request(deadline=past_deadline)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = _write_approvals(tmp, [req])
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
+                    with mock.patch("builtins.print"):
+                        for _ in range(3):
+                            reminder_runner.run_reminders()
+
+        self.assertEqual(mock_notifier.send_overdue_alert.call_count, 1)
+
+
 class TestCompletionNotice(unittest.TestCase):
     def test_all_approved_triggers_completion_notice(self) -> None:
         req = _open_request(approver_statuses=[("@alice", "approved"), ("@bob", "approved")])

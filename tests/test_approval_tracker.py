@@ -191,6 +191,44 @@ class TestUpdateApproverStatus(unittest.TestCase):
                 )
                 self.assertEqual(updated["status"], "open")
 
+    def test_unapprove_reverts_complete_to_open(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                req = approval_tracker.create_request(
+                    title="Revert Test",
+                    doc_url="https://example.com",
+                    requester="@pm",
+                    approvers=["@alice", "@bob"],
+                    deadline="2099-12-31",
+                )
+                approval_tracker.update_approver_status(req["id"], "@alice", "approved")
+                completed = approval_tracker.update_approver_status(req["id"], "@bob", "approved")
+                self.assertEqual(completed["status"], "complete")
+
+                reverted = approval_tracker.update_approver_status(
+                    req["id"], "@alice", "blocked", note="Found a regression"
+                )
+                self.assertEqual(reverted["status"], "open")
+                events = [entry["event"] for entry in reverted["audit_trail"]]
+                self.assertIn("reopened", events)
+
+    def test_update_on_cancelled_request_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            approvals_file = Path(tmp) / "approvals.json"
+            with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
+                req = approval_tracker.create_request(
+                    title="Cancel Test",
+                    doc_url="https://example.com",
+                    requester="@pm",
+                    approvers=["@alice"],
+                    deadline="2099-12-31",
+                )
+                approval_tracker.cancel_request(req["id"])
+                with self.assertRaises(ValueError):
+                    approval_tracker.update_approver_status(req["id"], "@alice", "approved")
+                self.assertEqual(approval_tracker.get_request(req["id"])["status"], "cancelled")
+
     def test_update_logs_to_audit_trail(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = Path(tmp) / "approvals.json"

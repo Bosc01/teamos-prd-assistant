@@ -45,6 +45,26 @@ class FetchIssuesTests(unittest.TestCase):
             self.assertEqual(rows, first_page)
             self.assertEqual(mock_get.call_count, 2)
 
+    def test_fetch_repo_issues_drops_prs_and_accumulates_pages(self) -> None:
+        first_page = [
+            {"number": 1, "title": "Issue one"},
+            {"number": 2, "title": "A pull request", "pull_request": {"url": "https://example.com/pr/2"}},
+        ]
+        second_page = [{"number": 3, "title": "Issue three"}]
+        third_page: list = []
+
+        with mock.patch("src.fetch_issues.requests.get") as mock_get:
+            mock_get.side_effect = [
+                _MockResponse(first_page),
+                _MockResponse(second_page),
+                _MockResponse(third_page),
+            ]
+            with mock.patch("builtins.print"):
+                issues = fetch_issues._fetch_repo_issues("acme/widgets", "token")
+
+        self.assertEqual([issue["number"] for issue in issues], [1, 3])
+        self.assertEqual(mock_get.call_count, 3)
+
 
 if __name__ == "__main__":
     unittest.main()

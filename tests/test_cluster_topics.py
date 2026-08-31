@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import csv
 import json
 import re
 import tempfile
 import unittest
+import warnings
 from pathlib import Path
 from unittest import mock
 
 import numpy as np
+from sklearn.exceptions import ConvergenceWarning
 
 from src import cluster_topics
 
@@ -50,6 +53,48 @@ class ClusterTopicsTests(unittest.TestCase):
             for row in clustered_rows:
                 normalized_label = row["topic_cluster"].replace("/", " ")
                 self.assertIsNone(repeated_word_pattern.search(normalized_label))
+
+    def test_cluster_count_far_above_distinct_vectors_stays_quiet_and_bounded(self) -> None:
+        # "the s3 bucket" and "s3 bucket" are distinct strings that collapse to
+        # the same TF-IDF row once stop words are removed.
+        insights = [
+            {"id": 1, "title": "the s3 bucket", "body_snippet": "", "signal_score": 1},
+            {"id": 2, "title": "s3 bucket", "body_snippet": "", "signal_score": 2},
+            {"id": 3, "title": "iam role drift", "body_snippet": "", "signal_score": 3},
+            {"id": 4, "title": "", "body_snippet": "", "signal_score": 1},
+        ]
+        requested = 15
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            processed = temp_root / "insights.json"
+            clustered = temp_root / "clustered_insights.json"
+            summary = temp_root / "topic_clusters.csv"
+            processed.write_text(json.dumps(insights), encoding="utf-8")
+
+            with mock.patch.object(cluster_topics, "PROCESSED_FILE", processed), mock.patch.object(
+                cluster_topics, "CLUSTERED_FILE", clustered
+            ), mock.patch.object(cluster_topics, "CLUSTER_SUMMARY_FILE", summary):
+                with warnings.catch_warnings():
+                    warnings.simplefilter("error", ConvergenceWarning)
+                    with mock.patch("builtins.print"):
+                        cluster_topics.cluster_topics(n_clusters=requested)
+
+            clustered_rows = json.loads(clustered.read_text(encoding="utf-8"))
+            real_cluster_ids = {
+                row["cluster_id"]
+                for row in clustered_rows
+                if row["cluster_id"] != cluster_topics.FALLBACK_CLUSTER_ID
+            }
+            self.assertLessEqual(len(real_cluster_ids), requested)
+
+            with summary.open("r", newline="", encoding="utf-8") as handle:
+                summary_rows = list(csv.DictReader(handle))
+            self.assertLessEqual(len(summary_rows), requested)
+            self.assertNotIn(
+                str(cluster_topics.FALLBACK_CLUSTER_ID),
+                [row["cluster_id"] for row in summary_rows],
+            )
 
 
 if __name__ == "__main__":

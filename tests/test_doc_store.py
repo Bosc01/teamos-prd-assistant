@@ -80,6 +80,34 @@ class TestSearchDocuments(unittest.TestCase):
         self.assertEqual(results[0]["customers"], ["Acme", "Globex"])
 
 
+class TestAddCommandEndToEnd(unittest.TestCase):
+    def test_add_command_through_parser_and_main(self) -> None:
+        """The README add command, end to end: parser dest through main to disk."""
+        with tempfile.TemporaryDirectory() as tmp:
+            docs_file = Path(tmp) / "documents.json"
+            with mock.patch.object(doc_store, "DOCS_FILE", docs_file):
+                with mock.patch("builtins.print"):
+                    doc_store.main(
+                        [
+                            "add",
+                            "--title", "My PRD",
+                            "--url", "https://example.com/doc",
+                            "--type", "prd",
+                            "--author", "@handle",
+                            "--product-area", "terraform-core",
+                            "--customers", "acme",
+                            "--tags", "auth",
+                            "--content", "snippet here",
+                        ]
+                    )
+                saved = json.loads(docs_file.read_text(encoding="utf-8"))
+
+        self.assertEqual(len(saved), 1)
+        self.assertEqual(saved[0]["title"], "My PRD")
+        self.assertEqual(saved[0]["doc_type"], "prd")
+        self.assertEqual(saved[0]["content_snippet"], "snippet here")
+
+
 class TestListDocuments(unittest.TestCase):
     def test_list_filters_by_doc_type(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
