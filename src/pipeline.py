@@ -20,11 +20,11 @@ def run_pipeline(n_clusters: int | None = None, repos: List[str] | None = None) 
         print("Step 2/4: Extracting insights...")
         extract_insights(repos=repos)
 
-        print("Step 3/4: Exporting CSV...")
-        export_csv()
-
-        print("Step 4/4: Clustering topics...")
+        print("Step 3/4: Clustering topics...")
         cluster_topics(n_clusters=n_clusters if n_clusters is not None else default_cluster_count())
+
+        print("Step 4/4: Exporting CSV...")
+        export_csv()
 
         print("Pipeline completed successfully.")
     except Exception as exc:

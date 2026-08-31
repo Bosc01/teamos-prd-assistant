@@ -20,6 +20,9 @@ PROCESSED_FILE = ROOT / "data" / "processed" / "insights.json"
 CLUSTERED_FILE = ROOT / "data" / "processed" / "clustered_insights.json"
 CLUSTER_SUMMARY_FILE = ROOT / "output" / "topic_clusters.csv"
 FALLBACK_TOPIC_LABEL = "insufficient detail"
+# Sentinel for issues whose text was too thin to cluster. Not a real cluster id:
+# it stays out of topic_clusters.csv and the summary rankings.
+FALLBACK_CLUSTER_ID = -1
 
 CUSTOM_STOP_WORDS = [
     "terraform", "hashicorp", "github", "issue", "issues", "http", "https",
@@ -52,18 +55,39 @@ def _combined_text(issue: Dict[str, Any]) -> str:
 
 
 def _is_redundant_term(term: str, selected_terms: List[str]) -> bool:
-    """Return True if term shares any token with already-selected terms,
-    or is a subset/superset of any selected term."""
+    """Return True if term is an exact match, subset, or superset of a selected
+    term, or shares more than half of the smaller term's tokens with one.
+    A single shared token between two bigrams is allowed ("s3 bucket" and
+    "bucket policy" are distinct topics)."""
     term_tokens = set(term.split())
     for selected in selected_terms:
         selected_tokens = set(selected.split())
-        # Block exact match, subset, superset, or any shared token
         if (term == selected
                 or term_tokens.issubset(selected_tokens)
-                or selected_tokens.issubset(term_tokens)
-                or term_tokens & selected_tokens):
+                or selected_tokens.issubset(term_tokens)):
+            return True
+        overlap = len(term_tokens & selected_tokens)
+        if overlap * 2 > min(len(term_tokens), len(selected_tokens)):
             return True
     return False
+
+
+def _creates_stutter(previous_term: str, term: str) -> bool:
+    """True when joining term after previous_term would repeat a word at the
+    seam ("bucket acl / acl policy" reads as "acl acl")."""
+    return previous_term.split()[-1] == term.split()[0]
+
+
+def _stutter_free_position(selected_terms: List[str], term: str) -> int | None:
+    """Find where term can join selected_terms without repeating a word at
+    either seam. Prefer later positions so the score ordering is kept where
+    possible; return None when every position stutters."""
+    for position in range(len(selected_terms), -1, -1):
+        before_ok = position == 0 or not _creates_stutter(selected_terms[position - 1], term)
+        after_ok = position == len(selected_terms) or not _creates_stutter(term, selected_terms[position])
+        if before_ok and after_ok:
+            return position
+    return None
 
 
 def _topic_label_from_scores(feature_names: List[str], term_scores: np.ndarray) -> str:
@@ -82,13 +106,22 @@ def _topic_label_from_scores(feature_names: List[str], term_scores: np.ndarray) 
     if not candidates:
         return "misc topic"
 
-    candidates.sort(key=lambda item: (item[2], item[1]), reverse=True)
+    # Rank by TF-IDF score with a modest boost for multi-word terms; never let
+    # token count trump score outright (a 0.01 bigram must not beat a 0.99 unigram).
+    bigram_boost = 1.25
+    candidates.sort(
+        key=lambda item: item[1] * (bigram_boost if item[2] > 1 else 1.0),
+        reverse=True,
+    )
 
     selected_terms: List[str] = []
     for term, _, _ in candidates:
         if _is_redundant_term(term, selected_terms):
             continue
-        selected_terms.append(term)
+        position = _stutter_free_position(selected_terms, term)
+        if position is None:
+            continue
+        selected_terms.insert(position, term)
         if len(selected_terms) >= 3:
             break
 
@@ -96,6 +129,15 @@ def _topic_label_from_scores(feature_names: List[str], term_scores: np.ndarray) 
         return "misc topic"
 
     return " / ".join(selected_terms)
+
+
+def _unique_row_count(sparse_matrix: Any) -> int:
+    """Count distinct rows of a sparse TF-IDF matrix."""
+    signatures = {
+        (tuple(row.indices.tolist()), tuple(row.data.tolist()))
+        for row in sparse_matrix
+    }
+    return len(signatures)
 
 
 def _cluster_labels(tfidf_matrix: Any, cluster_ids: np.ndarray, feature_names: List[str]) -> Dict[int, str]:
@@ -111,6 +153,8 @@ def _cluster_labels(tfidf_matrix: Any, cluster_ids: np.ndarray, feature_names: L
 def _cluster_summary_rows(clustered_insights: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     grouped: DefaultDict[int, List[Dict[str, Any]]] = defaultdict(list)
     for issue in clustered_insights:
+        if int(issue["cluster_id"]) == FALLBACK_CLUSTER_ID:
+            continue
         grouped[int(issue["cluster_id"])].append(issue)
 
     rows: List[Dict[str, Any]] = []
@@ -138,7 +182,14 @@ def _cluster_summary_rows(clustered_insights: List[Dict[str, Any]]) -> List[Dict
     return sorted(rows, key=lambda row: int(row["cluster_id"]))
 
 
-def _print_summary(rows: List[Dict[str, Any]]) -> None:
+def _print_summary(rows: List[Dict[str, Any]], fallback_count: int, total_count: int) -> None:
+    if total_count:
+        clustered_count = total_count - fallback_count
+        percent = 100.0 * clustered_count / total_count
+        print(
+            f"Coverage: {clustered_count}/{total_count} issues clustered ({percent:.0f}%); "
+            f"{fallback_count} had insufficient detail to cluster."
+        )
     print("Topic clusters discovered:")
     for index, row in enumerate(rows, start=1):
         print(
@@ -192,11 +243,13 @@ def cluster_topics(n_clusters: int = DEFAULT_N_CLUSTERS) -> None:
         if tfidf_matrix is not None:
             non_zero_mask = np.asarray(tfidf_matrix.getnnz(axis=1) > 0).ravel()
             filtered_indices = [valid_indices[index] for index, keep in enumerate(non_zero_mask) if keep]
-            filtered_texts = [valid_texts[index] for index, keep in enumerate(non_zero_mask) if keep]
 
             if filtered_indices:
                 filtered_matrix = tfidf_matrix[non_zero_mask]
-                cluster_count = min(cluster_count, len(filtered_indices), len(set(filtered_texts)))
+                # Distinct raw strings can collapse to identical TF-IDF rows after
+                # stop-word removal; clamp on unique rows so KMeans never asks for
+                # more clusters than there are distinct points.
+                cluster_count = min(cluster_count, _unique_row_count(filtered_matrix))
 
                 if cluster_count == 1:
                     cluster_ids = np.zeros(filtered_matrix.shape[0], dtype=int)
@@ -211,10 +264,8 @@ def cluster_topics(n_clusters: int = DEFAULT_N_CLUSTERS) -> None:
                     clustered_assignments[issue_index] = (int(cluster_id), labels[int(cluster_id)])
 
     fallback_indices = set(range(len(insights))) - set(clustered_assignments)
-    if fallback_indices:
-        fallback_cluster_id = (max(assignment[0] for assignment in clustered_assignments.values()) + 1) if clustered_assignments else 0
-        for issue_index in sorted(fallback_indices):
-            clustered_assignments[issue_index] = (fallback_cluster_id, FALLBACK_TOPIC_LABEL)
+    for issue_index in sorted(fallback_indices):
+        clustered_assignments[issue_index] = (FALLBACK_CLUSTER_ID, FALLBACK_TOPIC_LABEL)
 
     clustered_insights: List[Dict[str, Any]] = []
     for issue_index, issue in enumerate(insights):
@@ -237,7 +288,7 @@ def cluster_topics(n_clusters: int = DEFAULT_N_CLUSTERS) -> None:
         writer.writeheader()
         writer.writerows(summary_rows)
 
-    _print_summary(summary_rows)
+    _print_summary(summary_rows, fallback_count=len(fallback_indices), total_count=len(clustered_insights))
 
 
 def main() -> None:

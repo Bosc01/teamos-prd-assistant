@@ -197,7 +197,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p_add = sub.add_parser("add", help="Add a new document.")
     p_add.add_argument("--title", required=True, help="Document title.")
     p_add.add_argument("--url", required=True, help="Document URL.")
-    p_add.add_argument("--type", required=True, choices=sorted(_ALLOWED_DOC_TYPES), help="Document type.")
+    p_add.add_argument("--type", dest="doc_type", required=True, choices=sorted(_ALLOWED_DOC_TYPES), help="Document type.")
     p_add.add_argument("--author", required=True, help="Document author.")
     p_add.add_argument("--product-area", required=True, help="Product area tag.")
     p_add.add_argument("--customers", nargs="+", required=True, help="Customer names.")

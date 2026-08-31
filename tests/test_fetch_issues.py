@@ -15,8 +15,10 @@ import fetch_issues
 
 
 class _MockResponse:
-    def __init__(self, payload):
+    def __init__(self, payload, status_code: int = 200, headers: dict | None = None):
         self._payload = payload
+        self.status_code = status_code
+        self.headers = headers or {}
 
     def raise_for_status(self) -> None:
         return None

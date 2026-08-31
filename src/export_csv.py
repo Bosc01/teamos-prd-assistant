@@ -9,6 +9,7 @@ from typing import Dict, List
 
 ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_FILE = ROOT / "data" / "processed" / "insights.json"
+CLUSTERED_FILE = ROOT / "data" / "processed" / "clustered_insights.json"
 OUTPUT_FILE = ROOT / "output" / "insights.csv"
 
 CSV_FIELDS = [
@@ -25,14 +26,19 @@ CSV_FIELDS = [
     "signal_score",
     "body_snippet",
     "category",
+    "cluster_id",
+    "topic_cluster",
 ]
 
 
 def export_csv() -> None:
-    if not PROCESSED_FILE.exists():
-        raise FileNotFoundError(f"Processed insights file not found: {PROCESSED_FILE}")
+    # Prefer the clustered file so the export carries cluster_id/topic_cluster;
+    # fall back to the pre-clustering insights when clustering has not run.
+    source_file = CLUSTERED_FILE if CLUSTERED_FILE.exists() else PROCESSED_FILE
+    if not source_file.exists():
+        raise FileNotFoundError(f"Processed insights file not found: {source_file}")
 
-    insights: List[Dict] = json.loads(PROCESSED_FILE.read_text(encoding="utf-8"))
+    insights: List[Dict] = json.loads(source_file.read_text(encoding="utf-8"))
     sorted_insights = sorted(insights, key=lambda row: row.get("signal_score", 0), reverse=True)
 
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)

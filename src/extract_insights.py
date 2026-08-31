@@ -43,24 +43,39 @@ def _snippet(body: str | None) -> str:
     return text[:300]
 
 
-def _signal_score(comments: int, upvotes: int, created_at_raw: str) -> float:
-    created_at = datetime.now(timezone.utc)
-    if created_at_raw:
-        try:
-            created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
-            if created_at.tzinfo is None:
-                created_at = created_at.replace(tzinfo=timezone.utc)
-        except ValueError:
-            created_at = datetime.now(timezone.utc)
+RECENCY_HALF_LIFE_DAYS = 180
 
-    age_days = max(0, (datetime.now(timezone.utc) - created_at).days)
-    recency_weight = 1.0 / (1.0 + math.log1p(age_days / 365))
+
+def _parse_created_at(created_at_raw: str) -> datetime | None:
+    """Parse an ISO timestamp; return None for missing or malformed values."""
+    if not created_at_raw:
+        return None
+    try:
+        created_at = datetime.fromisoformat(created_at_raw.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=timezone.utc)
+    return created_at
+
+
+def _signal_score(comments: int, upvotes: int, created_at_raw: str) -> float:
+    created_at = _parse_created_at(created_at_raw)
+    if created_at is None:
+        # A row without a parseable date has no defensible recency; score it
+        # zero rather than letting corrupt data outrank valid issues.
+        return 0.0
+
+    age_days = max(0.0, (datetime.now(timezone.utc) - created_at).total_seconds() / 86400)
+    recency_weight = 0.5 ** (age_days / RECENCY_HALF_LIFE_DAYS)
     return round((math.log1p(comments) + math.log1p(upvotes) * 2) * recency_weight, 4)
 
 
 def _extract_issue(issue: Dict, repo: str) -> Dict:
-    labels = [label.get("name", "") for label in issue.get("labels", []) if label.get("name")]
-    upvotes = issue.get("reactions", {}).get("+1", 0)
+    # GitHub returns null (not a missing key) for deleted accounts and for
+    # issues without reactions, so guard against None values explicitly.
+    labels = [label.get("name", "") for label in (issue.get("labels") or []) if label.get("name")]
+    upvotes = (issue.get("reactions") or {}).get("+1", 0)
     comments = issue.get("comments", 0)
     title = issue.get("title", "")
     created_at = issue.get("created_at", "")
@@ -72,7 +87,7 @@ def _extract_issue(issue: Dict, repo: str) -> Dict:
         "url": issue.get("html_url", ""),
         "state": issue.get("state", ""),
         "created_at": created_at,
-        "author": issue.get("user", {}).get("login", ""),
+        "author": (issue.get("user") or {}).get("login", ""),
         "labels": ", ".join(labels),
         "comments": comments,
         "upvotes": upvotes,

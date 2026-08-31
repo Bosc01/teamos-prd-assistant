@@ -30,9 +30,11 @@ class ExportCsvTests(unittest.TestCase):
             processed_file.parent.mkdir(parents=True, exist_ok=True)
             processed_file.write_text(json.dumps(insights), encoding="utf-8")
 
+            clustered_file = temp_root / "data" / "processed" / "clustered_insights.json"
+
             with mock.patch.object(export_csv, "PROCESSED_FILE", processed_file), mock.patch.object(
-                export_csv, "OUTPUT_FILE", output_file
-            ):
+                export_csv, "CLUSTERED_FILE", clustered_file
+            ), mock.patch.object(export_csv, "OUTPUT_FILE", output_file):
                 export_csv.export_csv()
 
             self.assertTrue(output_file.exists())
