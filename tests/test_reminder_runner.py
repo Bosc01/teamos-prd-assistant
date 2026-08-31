@@ -3,18 +3,13 @@
 from __future__ import annotations
 
 import json
-import sys
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-import approval_tracker
-import reminder_runner
+from src import approval_tracker, reminder_runner
 
 
 def _write_approvals(tmp_dir: str, data: list) -> Path:
@@ -66,7 +61,7 @@ class TestDryRun(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
                     with mock.patch("builtins.print") as mock_print:
                         reminder_runner.run_reminders(dry_run=True)
 
@@ -83,7 +78,7 @@ class TestDryRun(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier"):
+                with mock.patch("src.reminder_runner.notifier"):
                     with mock.patch("builtins.print", side_effect=lambda *a, **k: printed_lines.append(str(a[0]) if a else "")):
                         reminder_runner.run_reminders(dry_run=True)
 
@@ -98,7 +93,7 @@ class TestOverdueAlert(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
                     mock_notifier.send_reminder.return_value = True
                     mock_notifier.send_overdue_alert.return_value = True
                     mock_notifier.send_completion_notice.return_value = True
@@ -113,7 +108,7 @@ class TestOverdueAlert(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
                     mock_notifier.send_reminder.return_value = True
                     mock_notifier.send_overdue_alert.return_value = True
                     mock_notifier.send_completion_notice.return_value = True
@@ -130,7 +125,7 @@ class TestCompletionNotice(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
                     mock_notifier.send_reminder.return_value = True
                     mock_notifier.send_overdue_alert.return_value = True
                     mock_notifier.send_completion_notice.return_value = True
@@ -148,7 +143,7 @@ class TestCompletionNotice(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
                     mock_notifier.send_completion_notice.return_value = True
                     with mock.patch("builtins.print"):
                         reminder_runner.run_reminders()
@@ -170,7 +165,7 @@ class TestFilterById(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req1, req2])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
                     mock_notifier.send_reminder.side_effect = fake_send_reminder
                     mock_notifier.send_overdue_alert.return_value = True
                     mock_notifier.send_completion_notice.return_value = True
@@ -201,7 +196,7 @@ class TestDigestMode(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req1, req2])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier") as mock_notifier:
+                with mock.patch("src.reminder_runner.notifier") as mock_notifier:
                     mock_notifier.send_digest.side_effect = fake_send_digest
                     mock_notifier.send_reminder.return_value = True
                     mock_notifier.send_overdue_alert.return_value = True
@@ -223,7 +218,7 @@ class TestDigestMode(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             approvals_file = _write_approvals(tmp, [req])
             with mock.patch.object(approval_tracker, "APPROVALS_FILE", approvals_file):
-                with mock.patch("reminder_runner.notifier"):
+                with mock.patch("src.reminder_runner.notifier"):
                     with mock.patch("builtins.print", side_effect=lambda *a, **k: printed_lines.append(str(a[0]) if a else "")):
                         reminder_runner.run_reminders(dry_run=True, digest=True)
 

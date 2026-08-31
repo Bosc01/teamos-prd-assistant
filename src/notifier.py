@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timezone
 from typing import Dict, Optional
 
-from storage import days_until_deadline
+from .storage import STATUS_ICONS, days_until_deadline
 
 try:
     import requests as _requests
@@ -38,7 +38,7 @@ def _deadline_label(deadline_str: str) -> str:
 
 
 def _status_icon(status: str) -> str:
-    return {"approved": "✓", "pending": "⏳", "reviewing": "🔍", "blocked": "🚫"}.get(status, status)
+    return STATUS_ICONS.get(status, status)
 
 
 def _post_to_slack(text: str) -> bool:
@@ -77,8 +77,8 @@ def send_approval_request(request: Dict, approver: Dict) -> bool:
         f"*Deadline:* {deadline_label}\n\n"
         f"You've been added as an approver. Please review and reply with your decision.\n\n"
         f"To update your status, run:\n"
-        f"  `python src/approval_tracker.py update --id {req_id_short} --approver {handle} --status reviewing`\n"
-        f"  `python src/approval_tracker.py update --id {req_id_short} --approver {handle} --status approved`\n\n"
+        f"  `python -m src.approval_tracker update --id {req_id_short} --approver {handle} --status reviewing`\n"
+        f"  `python -m src.approval_tracker update --id {req_id_short} --approver {handle} --status approved`\n\n"
         f"Or reply in this thread with your status."
     )
     return _post_to_slack(text)
@@ -119,7 +119,7 @@ def send_reminder(request: Dict, approver: Dict) -> bool:
         f"*Deadline:* {deadline_label}\n"
         f"*Document:* {request['doc_url']}\n\n"
         f"{urgency_note}\n\n"
-        f"To update: `python src/approval_tracker.py update --id {req_id_short} --approver {handle} --status approved`"
+        f"To update: `python -m src.approval_tracker update --id {req_id_short} --approver {handle} --status approved`"
     )
     return _post_to_slack(text)
 
@@ -148,7 +148,7 @@ def send_digest(approver_handle: str, pending_items: list[Dict]) -> bool:
         )
 
     lines.append(
-        "Reply with status updates using: python src/approval_tracker.py update --id [id] --approver [handle] --status approved"
+        "Reply with status updates using: python -m src.approval_tracker update --id [id] --approver [handle] --status approved"
     )
     text = "\n".join(lines)
     return _post_to_slack(text)

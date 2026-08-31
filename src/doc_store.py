@@ -5,9 +5,10 @@ from __future__ import annotations
 import argparse
 import json
 import uuid
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
+
+from .storage import load_json_list, locked, now_iso, save_json_list_atomic
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS_FILE = ROOT / "data" / "docs" / "documents.json"
@@ -20,17 +21,12 @@ _ALLOWED_DOC_TYPES = {"prd", "prfaq", "rfc", "field_note", "customer_call", "oth
 
 def load_all() -> List[Dict]:
     """Load all stored documents from disk."""
-    if not DOCS_FILE.exists():
-        return []
-    return json.loads(DOCS_FILE.read_text(encoding="utf-8"))
+    return load_json_list(DOCS_FILE)
 
 
 def save_all(documents: List[Dict]) -> None:
     """Write all documents back to disk atomically."""
-    DOCS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = DOCS_FILE.with_suffix(".tmp")
-    tmp_path.write_text(json.dumps(documents, indent=2), encoding="utf-8")
-    tmp_path.replace(DOCS_FILE)
+    save_json_list_atomic(DOCS_FILE, documents)
 
 
 # ---------------------------------------------------------------------------
@@ -53,8 +49,8 @@ def add_document(
     if doc_type not in _ALLOWED_DOC_TYPES:
         raise ValueError(f"Invalid doc_type '{doc_type}'. Must be one of: {sorted(_ALLOWED_DOC_TYPES)}")
 
-    created_at_value = created_at or _now_iso()
-    added_at_value = _now_iso()
+    created_at_value = created_at or now_iso()
+    added_at_value = now_iso()
     document: Dict = {
         "id": str(uuid.uuid4()),
         "title": title,
@@ -69,9 +65,10 @@ def add_document(
         "created_at": created_at_value,
         "added_at": added_at_value,
     }
-    all_documents = load_all()
-    all_documents.append(document)
-    save_all(all_documents)
+    with locked(DOCS_FILE):
+        all_documents = load_all()
+        all_documents.append(document)
+        save_all(all_documents)
     return document
 
 
@@ -119,20 +116,17 @@ def list_documents(
 
 def delete_document(doc_id: str) -> None:
     """Delete a document by ID."""
-    documents = load_all()
-    filtered = [document for document in documents if document["id"] != doc_id]
-    if len(filtered) == len(documents):
-        raise ValueError(f"No document found with id: {doc_id}")
-    save_all(filtered)
+    with locked(DOCS_FILE):
+        documents = load_all()
+        filtered = [document for document in documents if document["id"] != doc_id]
+        if len(filtered) == len(documents):
+            raise ValueError(f"No document found with id: {doc_id}")
+        save_all(filtered)
 
 
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
-
-def _now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
-
 
 def _matches_query(document: Dict, normalized_query: str) -> bool:
     haystacks = [
@@ -221,9 +215,9 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main() -> None:
+def main(argv: Optional[List[str]] = None) -> None:
     parser = _build_parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.command == "add":
         doc = add_document(

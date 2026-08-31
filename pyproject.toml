@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "teamos-prd-assistant"
+version = "0.1.0"
+description = "PM discovery prototypes: GitHub signal pipeline, approval tracker, and document store."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.ruff]
+line-length = 120
+extend-exclude = ["venv"]
+
+[tool.ruff.lint]
+# Correctness rules plus import hygiene. Style-modernization rule families stay
+# out of scope for this prototype so diffs remain reviewable.
+select = ["E4", "E7", "E9", "F", "I"]

@@ -3,17 +3,13 @@
 from __future__ import annotations
 
 import json
-import sys
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-import approval_tracker
+from src import approval_tracker
 
 # create_request sends the initial approval notification; keep unit tests
 # from printing notification text or touching a configured webhook.

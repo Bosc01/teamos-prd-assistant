@@ -3,16 +3,11 @@ from __future__ import annotations
 import csv
 import json
 import tempfile
+import unittest
 from pathlib import Path
 from unittest import mock
 
-import sys
-import unittest
-
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-import export_csv
+from src import export_csv
 
 
 class ExportCsvTests(unittest.TestCase):

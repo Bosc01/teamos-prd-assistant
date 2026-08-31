@@ -9,12 +9,7 @@ from unittest import mock
 
 import numpy as np
 
-import sys
-
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-import cluster_topics  # noqa: E402
+from src import cluster_topics
 
 
 class ClusterTopicsTests(unittest.TestCase):

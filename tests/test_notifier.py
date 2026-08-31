@@ -2,15 +2,10 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
-from pathlib import Path
 from unittest import mock
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-import notifier
+from src import notifier
 
 
 def _make_request(deadline: str = "2099-12-31") -> dict:
@@ -81,7 +76,7 @@ class TestSendReminderWithWebhook(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
 
         with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
-            with mock.patch("notifier._requests") as mock_requests_mod:
+            with mock.patch("src.notifier._requests") as mock_requests_mod:
                 mock_requests_mod.post.return_value = mock_response
                 result = notifier.send_reminder(req, approver)
 
@@ -99,7 +94,7 @@ class TestSendReminderWithWebhook(unittest.TestCase):
         import requests as real_requests
 
         with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
-            with mock.patch("notifier._requests") as mock_requests_mod:
+            with mock.patch("src.notifier._requests") as mock_requests_mod:
                 mock_requests_mod.post.side_effect = real_requests.exceptions.HTTPError("500 error")
                 with mock.patch("builtins.print"):
                     result = notifier.send_reminder(req, approver)
@@ -115,7 +110,7 @@ class TestSendReminderUrgency(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
 
         with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
-            with mock.patch("notifier._requests") as mock_requests_mod:
+            with mock.patch("src.notifier._requests") as mock_requests_mod:
                 mock_requests_mod.post.return_value = mock_response
                 notifier.send_reminder(req, approver)
                 # Use .kwargs directly for clear failure if signature changes
@@ -141,7 +136,7 @@ class TestSendDigest(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
 
         with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
-            with mock.patch("notifier._requests") as mock_requests_mod:
+            with mock.patch("src.notifier._requests") as mock_requests_mod:
                 mock_requests_mod.post.return_value = mock_response
                 result = notifier.send_digest("@steve", items)
 
@@ -177,7 +172,7 @@ class TestSendCompletionNotice(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
 
         with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
-            with mock.patch("notifier._requests") as mock_requests_mod:
+            with mock.patch("src.notifier._requests") as mock_requests_mod:
                 mock_requests_mod.post.return_value = mock_response
                 result = notifier.send_completion_notice(req)
 
@@ -198,7 +193,7 @@ class TestSendOverdueAlert(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
 
         with mock.patch.dict("os.environ", {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/test"}):
-            with mock.patch("notifier._requests") as mock_requests_mod:
+            with mock.patch("src.notifier._requests") as mock_requests_mod:
                 mock_requests_mod.post.return_value = mock_response
                 result = notifier.send_overdue_alert(req)
 

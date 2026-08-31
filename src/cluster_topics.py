@@ -13,7 +13,8 @@ from typing import Any, DefaultDict, Dict, List
 import numpy as np
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS, TfidfVectorizer
-from config import DEFAULT_N_CLUSTERS, default_cluster_count
+
+from .config import DEFAULT_N_CLUSTERS, default_cluster_count
 
 ROOT = Path(__file__).resolve().parent.parent
 PROCESSED_FILE = ROOT / "data" / "processed" / "insights.json"

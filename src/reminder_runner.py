@@ -3,18 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Optional
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-import approval_tracker  # noqa: E402
-import notifier  # noqa: E402
-from storage import days_until_deadline, parse_deadline  # noqa: E402
+from . import approval_tracker, notifier
+from .storage import days_until_deadline, locked, parse_deadline
 
 
 def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, digest: bool = False) -> None:
@@ -175,12 +169,13 @@ def _overdue_alert_on_cooldown(req: dict, now: datetime) -> bool:
 
 def _mark_completion_notice_sent(request_id: str) -> None:
     """Persist the completion_notice_sent flag on the request."""
-    all_requests = approval_tracker.load_all()
-    for req in all_requests:
-        if req["id"] == request_id:
-            req["completion_notice_sent"] = True
-            break
-    approval_tracker.save_all(all_requests)
+    with locked(approval_tracker.APPROVALS_FILE):
+        all_requests = approval_tracker.load_all()
+        for req in all_requests:
+            if req["id"] == request_id:
+                req["completion_notice_sent"] = True
+                break
+        approval_tracker.save_all(all_requests)
 
 
 def _digest_urgency_note(days_until: int | None, approver: dict) -> str:

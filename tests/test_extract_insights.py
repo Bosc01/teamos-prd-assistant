@@ -1,15 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-
-import sys
 import unittest
+from datetime import datetime, timedelta, timezone
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
-
-import extract_insights
+from src import extract_insights
 
 
 class ExtractInsightsTests(unittest.TestCase):

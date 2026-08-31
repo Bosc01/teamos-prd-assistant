@@ -5,11 +5,11 @@ from __future__ import annotations
 import argparse
 from typing import List
 
-from config import default_cluster_count
-from cluster_topics import cluster_topics
-from export_csv import export_csv
-from extract_insights import extract_insights
-from fetch_issues import fetch_all_issues
+from .cluster_topics import cluster_topics
+from .config import default_cluster_count
+from .export_csv import export_csv
+from .extract_insights import extract_insights
+from .fetch_issues import fetch_all_issues
 
 
 def run_pipeline(n_clusters: int | None = None, repos: List[str] | None = None) -> None:

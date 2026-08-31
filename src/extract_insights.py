@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List
 
-from fetch_issues import repo_output_filename, resolve_repos
+from .fetch_issues import repo_output_filename, resolve_repos
 
 ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = ROOT / "data" / "raw"

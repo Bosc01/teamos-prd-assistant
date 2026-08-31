@@ -1,12 +1,69 @@
-"""Shared plumbing for the approval tracker and doc store: deadline parsing."""
+"""Shared plumbing for the approval tracker and doc store: JSON persistence,
+cross-process locking, timestamps, status icons, and deadline parsing."""
 
 from __future__ import annotations
 
+import json
 import re
+from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Optional
+from pathlib import Path
+from typing import Dict, Iterator, List, Optional
+
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - non-POSIX platforms have no fcntl
+    fcntl = None  # type: ignore[assignment]
+
+STATUS_ICONS: Dict[str, str] = {
+    "approved": "✓",
+    "pending": "⏳",
+    "reviewing": "🔍",
+    "blocked": "🚫",
+}
 
 _DATE_ONLY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def now_iso() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def load_json_list(path: Path) -> List[Dict]:
+    """Load a list of records from a JSON file; missing file means empty."""
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def save_json_list_atomic(path: Path, records: List[Dict]) -> None:
+    """Write records to path atomically (write to a sibling, then rename)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(".tmp")
+    tmp_path.write_text(json.dumps(records, indent=2), encoding="utf-8")
+    tmp_path.replace(path)
+
+
+@contextmanager
+def locked(path: Path) -> Iterator[None]:
+    """Hold an exclusive advisory lock for a load-modify-save cycle on path.
+
+    Every mutation rewrites the whole JSON file, so a cron reminder run and an
+    interactive session that interleave would silently drop each other's
+    audit-trail entries. All writers must take this lock first.
+    """
+    if fcntl is None:  # pragma: no cover - degrade to unlocked on non-POSIX
+        yield
+        return
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path = path.parent / (path.name + ".lock")
+    with open(lock_path, "w", encoding="utf-8") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(handle, fcntl.LOCK_UN)
 
 
 def parse_deadline(raw: Optional[str]) -> Optional[datetime]:
