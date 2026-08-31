@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import os
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 from typing import Dict, Optional
+
+from storage import days_until_deadline
 
 try:
     import requests as _requests
@@ -21,12 +23,7 @@ except ImportError:  # pragma: no cover
 
 def _days_until(deadline_str: str) -> Optional[int]:
     """Return days until deadline (negative means overdue)."""
-    try:
-        deadline = date.fromisoformat(deadline_str[:10])
-        today = datetime.now(timezone.utc).date()
-        return (deadline - today).days
-    except (ValueError, TypeError):
-        return None
+    return days_until_deadline(deadline_str)
 
 
 def _deadline_label(deadline_str: str) -> str:
@@ -129,7 +126,7 @@ def send_reminder(request: Dict, approver: Dict) -> bool:
 
 def send_digest(approver_handle: str, pending_items: list[Dict]) -> bool:
     """Send one batched approval digest to a single approver."""
-    lines = ["Good morning! Here's your approval queue for today:"]
+    lines = [f"Good morning, {approver_handle}! Here's your approval queue for today:"]
     for index, item in enumerate(pending_items, start=1):
         days_until = item.get("days_until")
         if days_until is None:

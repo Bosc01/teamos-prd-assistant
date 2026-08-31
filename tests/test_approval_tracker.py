@@ -15,6 +15,18 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import approval_tracker
 
+# create_request sends the initial approval notification; keep unit tests
+# from printing notification text or touching a configured webhook.
+_notifier_patcher = mock.patch.object(approval_tracker, "notifier")
+
+
+def setUpModule() -> None:
+    _notifier_patcher.start()
+
+
+def tearDownModule() -> None:
+    _notifier_patcher.stop()
+
 
 def _make_request(**kwargs) -> dict:
     """Helper: build a minimal approval request dict via create_request with mocked I/O."""
@@ -46,7 +58,9 @@ class TestCreateRequest(unittest.TestCase):
         self.assertEqual(len(req["approvers"]), 2)
         for approver in req["approvers"]:
             self.assertEqual(approver["status"], "pending")
-            self.assertIsNone(approver["last_notified_at"])
+            # Creation sends the initial approval request, so the reminder
+            # clock starts at creation time.
+            self.assertIsNotNone(approver["last_notified_at"])
             self.assertEqual(approver["notification_count"], 0)
         self.assertTrue(len(req["audit_trail"]) >= 1)
         self.assertEqual(req["audit_trail"][0]["event"], "created")

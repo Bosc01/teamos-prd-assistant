@@ -148,7 +148,7 @@ class TestSendDigest(unittest.TestCase):
         self.assertTrue(result)
         mock_requests_mod.post.assert_called_once()
         payload = mock_requests_mod.post.call_args.kwargs["json"]
-        self.assertIn("Good morning! Here's your approval queue for today:", payload["text"])
+        self.assertIn("Good morning, @steve! Here's your approval queue for today:", payload["text"])
         self.assertIn("Terraform Cloud PRD", payload["text"])
         self.assertIn("Terraform Core RFC", payload["text"])
 

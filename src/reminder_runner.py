@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
@@ -14,6 +14,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import approval_tracker  # noqa: E402
 import notifier  # noqa: E402
+from storage import days_until_deadline, parse_deadline  # noqa: E402
 
 
 def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, digest: bool = False) -> None:
@@ -58,13 +59,7 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
         for req, approver in pending_pairs:
             handle = approver["handle"]
             deadline_str = req.get("deadline", "")
-            try:
-                deadline_dt = datetime.fromisoformat(deadline_str)
-                if deadline_dt.tzinfo is None:
-                    deadline_dt = deadline_dt.replace(tzinfo=timezone.utc)
-                days_until = (deadline_dt.date() - now.date()).days
-            except (ValueError, TypeError):
-                days_until = 0
+            days_until = days_until_deadline(deadline_str, now=now)
             pending_by_handle[handle].append(
                 {
                     "request_id": req["id"],
@@ -105,15 +100,8 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
     # --- overdue alerts ---
     overdue_count = 0
     for req in open_requests:
-        deadline_str = req.get("deadline", "")
-        try:
-            deadline_dt = datetime.fromisoformat(deadline_str)
-            if deadline_dt.tzinfo is None:
-                deadline_dt = deadline_dt.replace(tzinfo=timezone.utc)
-        except (ValueError, TypeError):
-            continue
-
-        if now <= deadline_dt:
+        deadline_dt = parse_deadline(req.get("deadline"))
+        if deadline_dt is None or now <= deadline_dt:
             continue
 
         has_pending = any(
@@ -122,15 +110,22 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
         if not has_pending:
             continue
 
+        if _overdue_alert_on_cooldown(req, now):
+            continue
+
         if dry_run:
             print(f"[dry-run] Would send overdue alert for '{req['title']}'")
         else:
             notifier.send_overdue_alert(req)
+            approval_tracker.record_overdue_notice(req["id"])
             overdue_count += 1
 
     # --- completion notices ---
+    # A request that completed via update_approver_status has status "complete",
+    # so look beyond open requests here.
     completion_count = 0
-    for req in open_requests:
+    completed_or_open = [r for r in all_requests if r.get("status") in ("open", "complete")]
+    for req in completed_or_open:
         all_approved = req.get("approvers") and all(
             a["status"] == "approved" for a in req["approvers"]
         )
@@ -159,6 +154,25 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
         )
 
 
+def _overdue_alert_on_cooldown(req: dict, now: datetime) -> bool:
+    """True while a previously sent overdue alert is still within its cooldown.
+
+    The cooldown reuses the request's reminder interval so a stalled request
+    re-alerts at the same cadence as reminders, instead of every cron run.
+    """
+    last_sent_raw = req.get("overdue_notice_sent_at")
+    if not last_sent_raw:
+        return False
+    try:
+        last_sent = datetime.fromisoformat(last_sent_raw)
+    except (ValueError, TypeError):
+        return False
+    if last_sent.tzinfo is None:
+        last_sent = last_sent.replace(tzinfo=timezone.utc)
+    cooldown_days = int(req.get("reminder_interval_days", 2))
+    return (now - last_sent) < timedelta(days=cooldown_days)
+
+
 def _mark_completion_notice_sent(request_id: str) -> None:
     """Persist the completion_notice_sent flag on the request."""
     all_requests = approval_tracker.load_all()
@@ -169,12 +183,14 @@ def _mark_completion_notice_sent(request_id: str) -> None:
     approval_tracker.save_all(all_requests)
 
 
-def _digest_urgency_note(days_until: int, approver: dict) -> str:
+def _digest_urgency_note(days_until: int | None, approver: dict) -> str:
     count = approver.get("notification_count", 0) + 1
     if count == 1:
         return "A friendly nudge — your review would really help move this forward."
     if count == 2:
         return "This is getting time-sensitive."
+    if days_until is None:
+        return "⚠️ Urgent — please review as soon as possible."
     if days_until <= 0:
         return "⚠️ This is urgent — the deadline has passed and your approval is still needed."
     return f"⚠️ Urgent — only {days_until} day{'s' if days_until != 1 else ''} left until the deadline."

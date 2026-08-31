@@ -13,6 +13,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import notifier
+from storage import days_until_deadline, parse_deadline
+
 ROOT = Path(__file__).resolve().parent.parent
 APPROVALS_FILE = ROOT / "data" / "approvals" / "approvals.json"
 
@@ -59,9 +62,7 @@ def create_request(
     reminder_interval_days: int = 2,
 ) -> Dict:
     """Create a new approval request, save to JSON, and return the record."""
-    try:
-        datetime.fromisoformat(deadline)
-    except ValueError:
+    if parse_deadline(deadline) is None:
         raise ValueError(
             f"Invalid deadline format '{deadline}'. Use YYYY-MM-DD (e.g. 2026-06-20)."
         )
@@ -77,6 +78,7 @@ def create_request(
         "reminder_interval_days": reminder_interval_days,
         "status": "open",
         "completion_notice_sent": False,
+        "overdue_notice_sent_at": None,
         "approvers": [
             {
                 "handle": handle,
@@ -98,6 +100,21 @@ def create_request(
     }
     all_requests = load_all()
     all_requests.append(request)
+    save_all(all_requests)
+
+    # Notify each approver up front (the reminder cadence starts from here),
+    # then persist who was notified so the audit trail records it.
+    notified_at = _now_iso()
+    for approver in request["approvers"]:
+        notifier.send_approval_request(request, approver)
+        approver["last_notified_at"] = notified_at
+        request["audit_trail"].append(
+            {
+                "timestamp": notified_at,
+                "event": f"approval_request_sent:{approver['handle']}",
+                "detail": None,
+            }
+        )
     save_all(all_requests)
     return request
 
@@ -126,6 +143,11 @@ def update_approver_status(
     for req in all_requests:
         if req["id"] != request_id:
             continue
+        if req.get("status") == "cancelled":
+            raise ValueError(
+                f"Request {request_id} is cancelled; updates are not allowed. "
+                "Create a new request instead."
+            )
         for approver in req["approvers"]:
             if approver["handle"] == approver_handle:
                 approver["status"] = new_status
@@ -150,20 +172,44 @@ def update_approver_status(
         else:
             raise ValueError(f"Approver '{approver_handle}' not found in request {request_id}")
 
-        if all(a["status"] == "approved" for a in req["approvers"]):
-            req["status"] = "complete"
-            req["audit_trail"].append(
-                {
-                    "timestamp": now_str,
-                    "event": "complete",
-                    "detail": "All approvers have approved.",
-                }
-            )
+        _recompute_request_status(req, now_str)
 
         save_all(all_requests)
         return req
 
     raise ValueError(f"No approval request found with id: {request_id}")
+
+
+def _recompute_request_status(req: Dict, now_str: str) -> None:
+    """Derive request status from approver states. Cancelled is terminal;
+    otherwise all-approved means complete and anything else reopens."""
+    if req.get("status") == "cancelled":
+        return
+
+    all_approved = bool(req["approvers"]) and all(
+        a["status"] == "approved" for a in req["approvers"]
+    )
+
+    if all_approved and req["status"] != "complete":
+        req["status"] = "complete"
+        req["audit_trail"].append(
+            {
+                "timestamp": now_str,
+                "event": "complete",
+                "detail": "All approvers have approved.",
+            }
+        )
+    elif not all_approved and req["status"] == "complete":
+        req["status"] = "open"
+        # Allow a fresh completion notice if the request completes again.
+        req["completion_notice_sent"] = False
+        req["audit_trail"].append(
+            {
+                "timestamp": now_str,
+                "event": "reopened",
+                "detail": "An approver is no longer approved.",
+            }
+        )
 
 
 def reset_request(request_id: str) -> Dict:
@@ -184,6 +230,7 @@ def reset_request(request_id: str) -> Dict:
 
         req["status"] = "open"
         req["completion_notice_sent"] = False
+        req["overdue_notice_sent_at"] = None
         req["audit_trail"].append(
             {
                 "timestamp": now_str,
@@ -193,6 +240,27 @@ def reset_request(request_id: str) -> Dict:
         )
         save_all(all_requests)
         return req
+
+    raise ValueError(f"No approval request found with id: {request_id}")
+
+
+def record_overdue_notice(request_id: str) -> Dict:
+    """Mark that an overdue alert was sent for a request."""
+    all_requests = load_all()
+    now_str = _now_iso()
+
+    for req in all_requests:
+        if req["id"] == request_id:
+            req["overdue_notice_sent_at"] = now_str
+            req["audit_trail"].append(
+                {
+                    "timestamp": now_str,
+                    "event": "overdue_alert_sent",
+                    "detail": None,
+                }
+            )
+            save_all(all_requests)
+            return req
 
     raise ValueError(f"No approval request found with id: {request_id}")
 
@@ -232,11 +300,8 @@ def get_pending_reminders(now: Optional[datetime] = None) -> List[tuple]:
     for req in load_all():
         if req["status"] != "open":
             continue
-        try:
-            deadline_dt = datetime.fromisoformat(req["deadline"])
-            if deadline_dt.tzinfo is None:
-                deadline_dt = deadline_dt.replace(tzinfo=timezone.utc)
-        except (ValueError, KeyError):
+        deadline_dt = parse_deadline(req.get("deadline"))
+        if deadline_dt is None:
             continue
 
         if now > deadline_dt:
@@ -299,15 +364,11 @@ def dashboard(now: Optional[datetime] = None) -> str:
     healthy: List[Dict] = []
 
     for req in open_requests:
-        try:
-            deadline_dt = datetime.fromisoformat(req["deadline"])
-            if deadline_dt.tzinfo is None:
-                deadline_dt = deadline_dt.replace(tzinfo=timezone.utc)
-        except (ValueError, KeyError):
+        days_remaining = days_until_deadline(req.get("deadline"), now=now)
+        if days_remaining is None:
             healthy.append(req)
             continue
 
-        days_remaining = (deadline_dt - now).days
         if days_remaining < 0:
             overdue.append(req)
         elif days_remaining <= 3:
