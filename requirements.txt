@@ -1,4 +1,6 @@
-requests
-python-dotenv
-scikit-learn
-numpy
+# Runtime dependencies, pinned. Verified to install on Python 3.10-3.12.
+requests==2.34.2
+python-dotenv==1.1.1
+scikit-learn==1.7.2
+numpy==2.2.6
+scipy==1.15.3

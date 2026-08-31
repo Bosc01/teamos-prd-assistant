@@ -112,7 +112,7 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
         else:
             notifier.send_overdue_alert(req)
             approval_tracker.record_overdue_notice(req["id"])
-            overdue_count += 1
+        overdue_count += 1
 
     # --- completion notices ---
     # A request that completed via update_approver_status has status "complete",
@@ -134,7 +134,7 @@ def run_reminders(dry_run: bool = False, request_id: Optional[str] = None, diges
             notifier.send_completion_notice(req)
             # Mark so we don't re-send on subsequent cron runs
             _mark_completion_notice_sent(req["id"])
-            completion_count += 1
+        completion_count += 1
 
     if dry_run:
         print(

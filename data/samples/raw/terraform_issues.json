@@ -1,0 +1,2404 @@
+[
+  {
+    "number": 39089,
+    "title": "Nondeterministic `Error: Cycle` on a configuration whose dependency graph is acyclic",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39089",
+    "created_at": "2026-08-29T22:19:00Z",
+    "user": {
+      "login": "Nilsils"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 0,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.16.0\non linux_amd64\n\n\nRegression. Works correctly on 1.15.9\n```\n\n### Terraform Configuration Files\n\n```bash\n#!/usr/bin/env bash\n# Usage: ./repro.sh [path/to/terraform]     (defaults to `terraform` on PATH)\n# The failure is nondeterministic. Run this a few times.\nset -e\nTF=\"${1:-terraform}\"\ncd \"$(mktemp -d)\"\n\ncat > main.tf <<'EOF'\nresource \"terraform_data\" \"r2\" {}\n\nresource \"terraform_data\" \"r3\" {\n  triggers_replace = [\"v1\"]\n}\nEOF\n\n\"$TF\" init  -input=f"
+  },
+  {
+    "number": 39088,
+    "title": "destroy = false with create_before_destroy plans a Forget against a deposed object and fails",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39088",
+    "created_at": "2026-08-29T08:42:16Z",
+    "user": {
+      "login": "Nilsils"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.16.0\non linux_amd64\n\n\nAlso reproduced on v1.17.0-alpha20260827.\n\nNot a regression: this has never worked. Resource-level lifecycle { destroy = false } landed between 1.16.0-alpha20260624 and 1.16.0-alpha20260708, and this combination has failed in every build that accepts the argument.\n```\n\n### Terraform Configuration Files\n\n```bash\n#!/usr/bin/env bash\n# Usage:  ./repro.sh [path/to/terraform]      (defaults to `terraform` on PATH)\nset -euo pipefail\nTF"
+  },
+  {
+    "number": 39085,
+    "title": "terraform state show panics instead of erroring when given an attribute path (regression in 1.16.0)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39085",
+    "created_at": "2026-08-28T19:15:05Z",
+    "user": {
+      "login": "ewlumpkin"
+    },
+    "labels": [
+      {
+        "name": "confirmed"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```\nTerraform v1.16.0\non linux_amd64\n```\n\nRegression introduced in 1.16.0. Terraform v1.15.9 handles the same input correctly.\n\n### Terraform Configuration Files\n\nNone required \u2014 reproduces in an empty directory with no configuration, no state,\nand no `terraform init`.\n\n### Expected Behavior\n\n`terraform state show` should reject an address containing an attribute path with the\nclean diagnostic it emitted in v1.15.9:\n\n```\nError parsing instance address: a.b.c\n\nThis command "
+  },
+  {
+    "number": 39076,
+    "title": "Replacement planned as [\"delete\",\"create\"] is applied create-before-destroy, and the destroy never runs",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39076",
+    "created_at": "2026-08-28T12:41:03Z",
+    "user": {
+      "login": "Nilsils"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 0,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.16.0\non linux_amd64\n\nAlso reproduced on v1.17.0-alpha20260827\nLast good version: v1.15.9\n```\n\n### Terraform Configuration Files\n\n```bash\n#!/usr/bin/env bash\n# Run this in an EMPTY directory, with the Terraform binary under test on PATH.\n# No providers are needed: terraform_data is built in, so init downloads nothing.\nset -euo pipefail\n\ncat > main.tf <<'EOF'\nresource \"terraform_data\" \"r3\" {\n  triggers_replace = [\"v1\"]\n}\nEOF\nterraform init -input=false "
+  },
+  {
+    "number": 39059,
+    "title": "Proposal: Add a `-untaint=ADDRESS` planning option",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39059",
+    "created_at": "2026-08-25T20:19:13Z",
+    "user": {
+      "login": "kevineor"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\n1.15.8\n```\n\n### Use Cases\n\nI'm running terraform in automation (Both Gitlab-CI based and TFE / HCP terraform ones)\n\nI mostly removed manual terraform operations through my teams (all of them can be done from automated plan/apply, but the only one that still (rarely) occur to me is to untaint a resource.\n\nIn normal situations resources should not be tainted, but in certain rare scenarios (e.g. terraform provider crashes), some resources may be tainted and will eith"
+  },
+  {
+    "number": 39057,
+    "title": "Architecture-level visualization: terraform graph renders the dependency graph, not the infrastructure topology",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39057",
+    "created_at": "2026-08-25T13:45:33Z",
+    "user": {
+      "login": "mchittineni"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 7,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.17.0-dev\n(behaviour described here is the same on v1.16.x and earlier)\n```\n\n### Use Cases\n\nWhen reviewing a change to infrastructure, or onboarding someone onto an existing stack, the question people actually ask is architectural: *what does this system look like, and what talks to what?* Today Terraform can tell you the resources and their dependency order, but there is no first-class way to see the shape of the infrastructure being described.\n\nConcr"
+  },
+  {
+    "number": 39053,
+    "title": "Potential deadlock due to leaked mutex in internal/rpcapi/handles.go#newHandleWithDependency",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39053",
+    "created_at": "2026-08-25T09:48:16Z",
+    "user": {
+      "login": "somak2kai"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nany\n```\n\n### Terraform Configuration Files\n\nIn the file /internal/rpcapi/handles.go, method newHandleWithdependency method unlocks only on the success path. If newHandleErrorNoparent is raised, the handleTable's mutex is held forever. This is possible if say openStackConfiguration and ClouseSourceBundle competes concurrently ( improbable but nothing prevents it right now)\n\n### Debug Output\n\nThe unit test fails with error \n\n```\n\nadmin@admins-MacBook-Pro terraform %"
+  },
+  {
+    "number": 39047,
+    "title": "terraform init hangs when reusing a cached git:: module with no manifest version",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39047",
+    "created_at": "2026-08-21T14:52:01Z",
+    "user": {
+      "login": "dteixeira"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.8\non darwin_arm64\n\nYour version of Terraform is out of date! The latest version\nis 1.15.9. You can update by downloading from https://developer.hashicorp.com/terraform/install\n\n---\n\nAlso tested and reproducible with versions `1.13.5` and `1.15.9`, same OS/arch.\n```\n\n### Terraform Configuration Files\n\n```terraform\nmodule \"fixture\" {\n  source = \"git::file:///absolute/path/to/fixture-module.git\"\n}\n```\n\n\n### Debug Output\n\nTrace:\n```\n2026-08-21T15:42:32"
+  },
+  {
+    "number": 39026,
+    "title": "Flakey test: TestPlan_jsonGoldenReference",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39026",
+    "created_at": "2026-08-14T09:13:29Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "tests"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "Another example of tests that require a duration to match\n\n```\n--- FAIL: TestPlan_jsonGoldenReference (0.02s)\n    plan_test.go:1861: wrong output lines\n          []map[string]any{\n          \t{\"@level\": string(\"info\"), \"@message\": string(\"data.test_data_source.a: Refreshing...\"), \"@module\": string(\"terraform.ui\"), \"hook\": map[string]any{\"action\": string(\"read\"), \"resource\": map[string]any{\"addr\": string(\"data.test_data_source.a\"), \"implied_provider\": string(\"test\"), \"module\": string(\"\"), \"resourc"
+  },
+  {
+    "number": 39025,
+    "title": "Flakey test: TestApply_WithPlanPolicyDiagnosticsJSON",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/39025",
+    "created_at": "2026-08-14T09:11:48Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "tests"
+      }
+    ],
+    "comments": 0,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "This test appears to be able to fail sporadically if the elapsed time ends up taking 1 second instead of 0.\nCould Go's new testing features for controlling time during tests help force this duration to be deterministic?\n\n\n\n```\n--- FAIL: TestApply_WithPlanPolicyDiagnosticsJSON (0.02s)\n    apply_policy_test.go:489: wrong output lines\n          []map[string]any{\n          \t... // 3 identical elements\n          \t{\"@level\": string(\"info\"), \"@message\": string(\"Plan: 1 to add, 0 to change, 0 to destroy"
+  },
+  {
+    "number": 38995,
+    "title": "Add progress bar  for downloading providers along with remaining time",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38995",
+    "created_at": "2026-08-10T03:20:51Z",
+    "user": {
+      "login": "hanyouqing"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\n$ terraform version\nTerraform v1.15.6\non darwin_amd64\n\nYour version of Terraform is out of date! The latest version\nis 1.15.8. You can update by downloading from https://developer.hashicorp.com/terraform/install\n```\n\n### Use Cases\n\n for downloading providers with terrible network\n\n### Attempted Solutions\n\nnone\n\n### Proposal\n\nAdd progress bar  for downloading providers along with remaining time\n\n### References\n\n* https://github.com/hashicorp/terraform/issues/24693"
+  },
+  {
+    "number": 38972,
+    "title": "Make variable values non-nullable by default",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38972",
+    "created_at": "2026-08-04T20:14:40Z",
+    "user": {
+      "login": "vwkd"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "The original PR #29832 implementing the `nullable` attribute said\n\n> In a future language edition [..] we make `nullable=false` the default\n\nThis hasn't happened yet and I couldn't find any discussions on it."
+  },
+  {
+    "number": 38968,
+    "title": "Failing `TestPlan_WithPolicyUnknown` test",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38968",
+    "created_at": "2026-08-04T10:57:18Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "tests"
+      }
+    ],
+    "comments": 0,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "This failure came up on main branch:\n\n```\nRun go test -race ./internal/terraform ./internal/command ./internal/states ./internal/promising ./internal/stacks/...\ngo: downloading github.com/go-test/deep v1.0.3\nok  \tgithub.com/hashicorp/terraform/internal/terraform\t44.266s\n--- FAIL: TestPlan_WithPolicyUnknown (0.02s)\n    plan_policy_test.go:457: unexpected output:\n        data.test_data_source.a: Reading...\n        data.test_data_source.a: Read complete after 1s [id=zzzzz]\n        \n        Warning:"
+  },
+  {
+    "number": 38960,
+    "title": "Support credential retrieval using OIDC-based role assumption.",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38960",
+    "created_at": "2026-08-03T11:07:18Z",
+    "user": {
+      "login": "twilight-cui"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "backend/oss"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nv1.17.0-dev\n```\n\n### Use Cases\n\nThe credentials cannot be retrieved without explicitly providing AK, SK, and an STS Token, as the OSS backend does not support obtaining credentials through OIDC role assumption.\n\n### Attempted Solutions\n\nAfter inspecting the Terraform source code, I found that OIDC-based role assumption for credential retrieval is not implemented.\n\n### Proposal\n\nSupport credential retrieval using OIDC-based role assumption.\nWe have implemented a co"
+  },
+  {
+    "number": 38948,
+    "title": "azurerm backend - store remote state on onelake",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38948",
+    "created_at": "2026-07-30T07:31:10Z",
+    "user": {
+      "login": "christianknoepfle"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "backend/azure"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\nlatest\n\n### Use Cases\n\nStore remote-state in Onelake / MS Fabric\n\nWe want to manage some Microsoft Fabric infrastructure using terraform and would like to store the state remotely. \n\nSince we do not have dedicated storage containers, we would like to store the state in onelake (in a defined workspace/lakehouse combination)\n\nI haven't found docs on how to configure onelake and browsing the code it seems that it is not supported yet to store things on onelake.blob.fabric.micr"
+  },
+  {
+    "number": 38939,
+    "title": "Terraform hangs indefinitely during provider plugin shutdown after operation completes",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38939",
+    "created_at": "2026-07-29T06:42:33Z",
+    "user": {
+      "login": "sl-cloud-platform"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 4
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.8\non linux_arm64\n```\n\n### Terraform Configuration Files\n\nNot config-specific \u2014 see below. The operation was a plan/apply against an existing\nstate that produced **\"No changes.\"** The hang is unrelated to the resource graph;\nit occurs during provider-plugin teardown after the operation finishes.\n\n### Debug Output\n\nI have none\n\n### Expected Behavior\n\nAfter `terraform apply` completes (here: \"No changes. Your infrastructure matches the\nconfiguration.\""
+  },
+  {
+    "number": 38872,
+    "title": "`terraform modules -json` returns incorrect source path to nested local modules",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38872",
+    "created_at": "2026-07-13T20:00:30Z",
+    "user": {
+      "login": "Qantas94Heavy"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.8\non darwin_arm64\n```\n\n### Terraform Configuration Files\n\nhttps://github.com/Qantas94Heavy/terraform-modules-cmd-bug\n\n### Debug Output\n\nSee debug output of `terraform modules -json` with different Terraform versions here: \n\n- [1.15.8](https://github.com/Qantas94Heavy/terraform-modules-cmd-bug/blob/fa76c89f71fd2fd810a3f91f08154a298e47abc3/debug-output-1.10.5.txt) (incorrect)\n- [1.11.0](https://github.com/Qantas94Heavy/terraform-modules-cmd-bug/blob/"
+  },
+  {
+    "number": 38833,
+    "title": "Add `format` command to help users by telling them to use `fmt`",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38833",
+    "created_at": "2026-07-07T12:36:40Z",
+    "user": {
+      "login": "nicola-spanti-neosoft-airbus-ds"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 4
+    },
+    "body": "### Terraform Version\n\n```shell\nv1.16.0-dev\n```\n\n### Use Cases\n\nSome other similar tools, like `ruff` for Python, use `format` instead of `fmt` like Go and Terraform. So users can be inclined to try to use `format`. \n\n### Proposal\n\nAdd `format` command to help users by telling them to use `fmt`.\n\n### References\n\nhttps://github.com/nicola-spanti-neosoft-airbus-ds/terraform/tree/command-format"
+  },
+  {
+    "number": 38824,
+    "title": "`terraform providers schema -json` does not expose the `provider_meta` schema",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38824",
+    "created_at": "2026-07-04T09:39:16Z",
+    "user": {
+      "login": "so0k"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nterraform version\nTerraform v1.15.7\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.53.0\n```\n\n### Use Cases\n\nTooling that generates or validates Terraform configuration programmatically - code generators, language servers, linters, module scaffolding tools - discovers what a provider supports by reading `terraform providers schema -json`. That's how these tools learn about resources, data sources, ephemeral resources, functions, and the provider'"
+  },
+  {
+    "number": 38814,
+    "title": "Add a Dev Container configuration for consistent contributor onboarding",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38814",
+    "created_at": "2026-07-01T15:43:49Z",
+    "user": {
+      "login": "cm-collins"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 3
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.7\non linux_amd64\n```\n\n### Use Cases\n\nNew contributors to Terraform Core currently need to manually set up their development environment by following the steps in CONTRIBUTING.md: installing the correct Go version (per .go-version), Git, protoc for `make protobuf`, and other tooling like `changie` for changelog entries.\n\nThis manual setup has a few problems:\n- It's easy to end up with a mismatched Go version, since .go-version and go.mod specify dif"
+  },
+  {
+    "number": 38805,
+    "title": "Add AGENTS.md to project root so AI coding agents follow contribution guidelines natively",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38805",
+    "created_at": "2026-06-30T15:05:53Z",
+    "user": {
+      "login": "lohitkolluri"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nN/A This is about repository configuration, not the CLI.\n```\n\n### Use Cases\n\nTerraform already documents its AI usage guidelines in CONTRIBUTING.md, including expectations around transparency, accountability, code quality, and the \ud83e\udd16\ud83e\udd16\ud83e\udd16 PR title convention for AI-assisted contributions.\n\nThe problem is that many contributors using AI coding tools never see these guidelines before changes are generated. Most tools don't automatically read CONTRIBUTING.md, so reposito"
+  },
+  {
+    "number": 38767,
+    "title": "rpcapi: Introduce AI-mediated zero-trust handshake with optional authorization (RFC)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38767",
+    "created_at": "2026-06-23T17:45:10Z",
+    "user": {
+      "login": "ayush6288"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "This is a Request for Comments (RFC) regarding a proposed AI-mediated zero-trust handshake for Terraform.\n\n## Background\nCurrently, Terraform establishes a plugin session using a magic cookie for initial handshake. However, as the ecosystem grows towards zero-trust architectures, there is a need for dynamic capability negotiation, rich workload identity (like SPIFFE JWT-SVID), and fine-grained, per-RPC authorization based on dynamic contexts (such as AI-driven anomaly detection on proposed resou"
+  },
+  {
+    "number": 38763,
+    "title": "Standardise JSON output in a future major release, with specific attention to the `init` command",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38763",
+    "created_at": "2026-06-23T14:45:27Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "breaking-change"
+      }
+    ],
+    "comments": 0,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "\u26a0\ufe0f  This issue is documenting a breaking change for the future. Please do not open a PR for this issue as it will be immediately closed.\n\n\n# Context\n\nThe `init` command's JSON output was added in the past when JSON output was new to Terraform. The current implementation doesn't match norms elsewhere in the codebase and also has complexity that is unnecessary; adding JSON output to init was originally motivated by enabling features in HCP Terraform but the logs contain details that are unused by "
+  },
+  {
+    "number": 38720,
+    "title": "backend-config silently ignored if the config file named terraform.tfvars",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38720",
+    "created_at": "2026-06-12T10:50:15Z",
+    "user": {
+      "login": "AkkermanD"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "documentation"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 6,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.6\non linux_amd64\n```\n\n### Terraform Configuration Files\n\nThe `main.tf` file:\n```terraform\nterraform {\n  backend \"local\" {}\n}\n\nresource \"terraform_data\" \"example\" {}\n```\n\nThe `terraform.tfvars`\n```tfvars\npath = \"custom.tfstate\"\n```\n\n### Debug Output\n\nGist: https://gist.github.com/AkkermanD/5787e5c6ee408ccdf30f22d4f2d0d283\n\n### Expected Behavior\n\nThe `.terraform/terraform.tfstate` to have `backend.config.path` set to `custom.tfstate`\n\n### Actual Beha"
+  },
+  {
+    "number": 38712,
+    "title": "`terraform login` sometimes fails to produce a success message from the temporary server used as `redirect_uri`",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38712",
+    "created_at": "2026-06-10T17:56:33Z",
+    "user": {
+      "login": "apparentlymart"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "cloud"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform 1.13.5\n```\n\n### Terraform Configuration Files\n\nConfiguration is not relevant to this report.\n\n### Debug Output\n\nn/a\n\n### Expected Behavior\n\nDuring the OAuth process for [the Terraform Login Protocol](https://developer.hashicorp.com/terraform/internals/login-protocol), the `terraform login` process temporarily starts an HTTP server running on localhost, and asks the OAuth provider to redirect the user's browser back to an endpoint on that server once the "
+  },
+  {
+    "number": 38670,
+    "title": "Terraform should disallow using the `-target` flag when using a plan file with the `apply` command",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38670",
+    "created_at": "2026-06-02T15:07:33Z",
+    "user": {
+      "login": "mikellealboretto-byte"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "breaking-change"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nterraform version\nTerraform v1.13.4\non linux_amd64\n```\n\n### Terraform Configuration Files\n\n```terraform\nmodule \"xen_vm\" {\n  for_each = local.vms\n  source   = \"./modules/xen\"\n  \n  name        = each.key\n  vcpus       = each.value.cpu\n  memory      = each.value.ram\n  disks       = each.value.disks\n  networks    = each.value.networks\n  host_name   = each.value.host_name\n}\n\n```\n\n\n### Debug Output\n\n```\nterraform -chdir=terraform apply -target='module.xen_vm[\\\"some-vm\\\""
+  },
+  {
+    "number": 38619,
+    "title": "backend/oss,consul: nil pointer panics from unchecked type assertions on external data",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38619",
+    "created_at": "2026-05-20T01:46:47Z",
+    "user": {
+      "login": "SebTardif"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 5,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "## Description\n\nThree functions in the OSS and Consul backends perform unchecked type assertions on data from external sources (ECS metadata endpoint, Alibaba Cloud config files, Consul KV store). When the external data is missing expected fields, terraform panics instead of returning a meaningful error.\n\n### 1. `backend/oss`: `getAuthCredentialByEcsRoleName` panics on unexpected ECS metadata response\n\n**File:** `internal/backend/remote-state/oss/backend.go:684`\n\n`jmespath.Search(\"Code\", data)` "
+  },
+  {
+    "number": 38612,
+    "title": "Add support for `state find` command to search resources in state files",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38612",
+    "created_at": "2026-05-19T03:44:38Z",
+    "user": {
+      "login": "uibm"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.x\n```\n\n### Use Cases\n\n\n- **Quick Resource Lookup**: As a Terraform user, I often need to find specific resources in large state files without manually parsing JSON or using external tools like `jq`.\n\n- **Debugging and Troubleshooting**: When debugging infrastructure issues, I need to quickly locate resources by type, name, or attribute values to understand the current state.\n\n- **State File Navigation**: Large state files with hundreds of resources"
+  },
+  {
+    "number": 38608,
+    "title": "Test framework: add ephemeral resource support to `mock_provider`",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38608",
+    "created_at": "2026-05-18T13:09:21Z",
+    "user": {
+      "login": "aivinog1"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 16
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.2\non linux_arm64\n+ provider registry.terraform.io/hashicorp/random v3.7.2\n\n\nReproducible identically on `darwin_arm64` and `linux_amd64` \u2014 the code path that emits the diagnostic lives in core, not in any platform-specific shim.\n```\n\n### Use Cases\n\nThe canonical pattern for managing write-only secret values in Terraform \u2014 straight from the docs on ephemeral values \u2014 combines:\n\n```hcl\nephemeral \"random_password\" \"this\" {\n  length = 32\n}\n\nresource \"a"
+  },
+  {
+    "number": 38580,
+    "title": "panic: runtime error: invalid memory address or nil pointer dereference",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38580",
+    "created_at": "2026-05-13T23:09:23Z",
+    "user": {
+      "login": "bkrishna2006"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "waiting-response"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.3\non linux_amd64\n```\n\n### Terraform Configuration Files\n\n```terraform\nprovider \"google\" {\n  project     = var.project_id\n  region      = var.region\n  credentials = file(var.credentials_file_path)\n}\n\nmodule \"01_vpc\" {\n  source                = \"../../../modules/01_vpc\"\n  project_id            = \"static-web-gcs\"\n  region                = \"asia-south1\"\n  credentials_file_path = \"../credentials/static-sites-on-gcs-1234c4c11234.json\" # Path to the GCP c"
+  },
+  {
+    "number": 38578,
+    "title": "Data race in checks.State.ObjectFailureMessages: missing mutex lock",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38578",
+    "created_at": "2026-05-13T21:48:44Z",
+    "user": {
+      "login": "SebTardif"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 5,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```\nTerraform v1.16.0-dev (main branch, HEAD)\n```\n\n### Terraform Configuration Files\n\nThis is an internal code bug (data race), not triggered by a specific user config. It affects any Terraform run that uses check blocks (`check {}`) with concurrent graph walks.\n\n```terraform\ncheck \"example\" {\n  assert {\n    condition     = true\n    error_message = \"example\"\n  }\n}\n```\n\n### Debug Output\n\nThe race is detectable with `go test -race ./internal/checks/...`. `ObjectFailureMessag"
+  },
+  {
+    "number": 38577,
+    "title": "SSH communicator leaks private key material in error messages",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38577",
+    "created_at": "2026-05-13T21:48:43Z",
+    "user": {
+      "login": "SebTardif"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```\nTerraform v1.16.0-dev (main branch, HEAD)\n```\n\n### Terraform Configuration Files\n\nThis is an internal code issue affecting any Terraform configuration using SSH provisioners with certificate-based authentication:\n\n```terraform\nresource \"null_resource\" \"example\" {\n  connection {\n    type        = \"ssh\"\n    host        = \"example.com\"\n    private_key = file(\"~/.ssh/id_rsa\")\n    certificate = file(\"~/.ssh/id_rsa-cert.pub\")\n  }\n\n  provisioner \"remote-exec\" {\n    inline = ["
+  },
+  {
+    "number": 38569,
+    "title": "terraform query -generate-config-out crashes when the target resource has a null `timeouts` attribute.",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38569",
+    "created_at": "2026-05-13T12:10:40Z",
+    "user": {
+      "login": "marcabreracast"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "waiting-response"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.2 on darwin_arm64\n```\n\n### Terraform Configuration Files\n\n```hcl\n# main.tf\nprovider \"mongodbatlas\" {}\n\nresource \"mongodbatlas_project_ip_access_list\" \"managed\" {\n  project_id = var.project_id\n  ip_address = \"1.2.3.4\"\n  comment    = \"Entry managed by Terraform.\"\n}\n```\n\n```hcl\n# query.tfquery.hcl\nlist \"mongodbatlas_project_ip_access_list\" \"entries\" {\n  provider = mongodbatlas\n\n  config {\n    project_id = var.project_id\n  }\n}\n```\n\n### Debug Output\n\n``"
+  },
+  {
+    "number": 38563,
+    "title": "Add validation of the `init` command's `-lockfile` flag's values",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38563",
+    "created_at": "2026-05-12T15:15:14Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "breaking-change"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nv1.15\n```\n\n### Terraform Configuration Files\n\nN/A\n\n### Debug Output\n\nN/A\n\n### Expected Behavior\n\nIf the `init` command's [-lockfile flag](https://developer.hashicorp.com/terraform/cli/commands/init#lockfile-mode) only supports a given list of value(s) then any value that isn't in this list should cause an error.\n\nFrom the docs:\n>The valid values for the lockfile mode are as follows:\n>\n> - [readonly](https://developer.hashicorp.com/terraform/cli/commands/init#reado"
+  },
+  {
+    "number": 38562,
+    "title": "terraform_remote_state make the config block write-only",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38562",
+    "created_at": "2026-05-12T13:29:46Z",
+    "user": {
+      "login": "Andrei-Predoiu"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 4
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.2\n```\n\n### Use Cases\n\n`terraform_remote_state` is used to access remote states\nIt uses a `config` block to connect to the relevant remote backend. There is no reason to store that config in the state.\nThis data source could be made more secure and compatible with `ephemeral` by making the `config` block write-only.\n\n\n### Attempted Solutions\n\n```hcl\n# This leaks the token\ndata \"vault_generic_secret\" \"state-bucket-token\" {\n  path = \"gcp/roleset/state"
+  },
+  {
+    "number": 38551,
+    "title": "Variable definition by parts",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38551",
+    "created_at": "2026-05-10T17:44:30Z",
+    "user": {
+      "login": "lucasew"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "waiting-response"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.8                                                                                                                                      \non linux_amd64                                                                                                                                         \n+ provider registry.terraform.io/carlpett/sops v1.4.1                                                                                                  \n+ provider r"
+  },
+  {
+    "number": 38529,
+    "title": "Allow backend type to be selected during `terraform init` without requiring a backend block in configuration",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38529",
+    "created_at": "2026-05-06T08:13:17Z",
+    "user": {
+      "login": "AdamCoulterOz"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\n1.15.1\n```\n\n### Use Cases\n\nTerraform modules and root configurations are not inherently coupled to a particular state backend implementation, but Terraform currently forces this coupling by the backend type needing to be declared in the root configuration (minimum is the type).\n\n### Attempted Solutions\n\nThe current workaround is to keep a minimal backend block in source, or generate one before terraform init, but both approaches still force execution-owned backend"
+  },
+  {
+    "number": 38517,
+    "title": "S3 Backend does not work with `aws login` when using `source_profile` in the AWS CLI config",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38517",
+    "created_at": "2026-05-04T19:35:13Z",
+    "user": {
+      "login": "ssilvidi"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "backend/s3"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 7
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.1\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.43.0\n```\n\n### Terraform Configuration Files\n\n```terraform\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"~> 6\"\n    }\n  }\n\n  backend \"s3\" {\n    bucket       = \"test-bucket\"\n    key          = \"test/key\"\n    region       = \"us-east-2\"\n    profile      = \"test\"\n  }\n}\n\nprovider \"aws\" {\n  region = \"us-east-2\"\n\n  profile = \"test\"\n}\n\ndata \""
+  },
+  {
+    "number": 38396,
+    "title": "undefined module output in depends_on   silently references the whole module",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38396",
+    "created_at": "2026-04-17T08:46:32Z",
+    "user": {
+      "login": "azrdev"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 3
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.8\non linux_amd64\n```\n\n### Terraform Configuration Files\n\n```terraform\n# main.tf\nmodule \"some\" {\n  source = \"./some\"\n}\n\nresource \"random_string\" \"this\" {\n  length = 4\n\n  depends_on = [\n    module.some.doesnotexist\n  ]\n}\n```\n\n```terraform\n# some/main.tf\nresource \"random_string\" \"dummy\" {\n  length = 3\n}\n\n```\n\n\n### Debug Output\n\nnot needed\n\n### Expected Behavior\n\nterraform should warn/error because module.some has no output `doesnotexist`\n\n### Actual B"
+  },
+  {
+    "number": 38369,
+    "title": "terraform test: override_data fails with nested_type attributes (Plugin Framework providers)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38369",
+    "created_at": "2026-04-09T14:42:18Z",
+    "user": {
+      "login": "ei-grad"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "## Description\n\n`terraform test` fails when using `override_data` with `values` for data sources that use the Plugin Framework's `nested_type` schema representation. HCL list literals (`[{ ... }]`) produce tuple types, and `fillAttribute` in the mocking package rejects them with:\n\n```\nError: Failed to compute attribute\n\nTerraform could not compute a value for the target type list of object with\nthe mocked data with the attribute \".result\": incompatible types; expected object type, found tuple.\n`"
+  },
+  {
+    "number": 38348,
+    "title": "terraform-ls.exe/terraform.exe not properly signed with ProductName",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38348",
+    "created_at": "2026-04-05T08:22:38Z",
+    "user": {
+      "login": "Deurslingeraar"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nhashicorp.terraform-2.39.2-win32-x64\n```\n\n### Use Cases\n\nWe are currently implementing Application Control for Business and some of our\nusers use the Hashi Corp Terraform extension.\nNow we want to whitelist terraform-ls.exe but to our surprise it was signed without\nProductName see screenshot:\n\n<img width=\"610\" height=\"687\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/48d328cb-7ed3-412d-b342-8cc59f4fc95b\" />\n\nFor now, this is a blocking issue since w"
+  },
+  {
+    "number": 38343,
+    "title": "Terraform apply should show summaries even on failures",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38343",
+    "created_at": "2026-04-04T00:05:33Z",
+    "user": {
+      "login": "purajit"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.7\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/local v2.8.0\n+ provider registry.terraform.io/hashicorp/null v3.2.4\n\nYour version of Terraform is out of date! The latest version\nis 1.14.8. You can update by downloading from https://developer.hashicorp.com/terraform/install\n```\n\n### Use Cases\n\nKnowing what changed before an apply failed is still critically important - whether you're \nviewing results stream in or extracting summaries pro"
+  },
+  {
+    "number": 38342,
+    "title": "`terraform -install-autocomplete` does not respect ZDOTDIR for zsh",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38342",
+    "created_at": "2026-04-03T18:14:54Z",
+    "user": {
+      "login": "tkuhemiya"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.8\non darwin_arm64\n```\n\n### Terraform Configuration Files\n\n```terraform\n```\n\n\n### Debug Output\n\n```\n\u279c  basics git:(main) TF_LOG=trace terraform -install-autocomplete\n2026-04-03T23:34:03.659+0530 [INFO]  Terraform version: 1.14.8\n2026-04-03T23:34:03.659+0530 [DEBUG] using github.com/hashicorp/go-tfe v1.94.0\n2026-04-03T23:34:03.659+0530 [DEBUG] using github.com/hashicorp/hcl/v2 v2.24.0\n2026-04-03T23:34:03.659+0530 [DEBUG] using github.com/hashicorp/te"
+  },
+  {
+    "number": 38340,
+    "title": "terraform force-unlock without having to specify lock ID",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38340",
+    "created_at": "2026-04-02T16:47:02Z",
+    "user": {
+      "login": "red8888"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 5
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.9.5\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/google v7.19.0\n+ provider registry.terraform.io/hashicorp/google-beta v7.19.0\n```\n\n### Use Cases\n\nI want to just run a command to unlock the current state without having to copy/paste the lock ID terraform spits out after running a plan.\n\n### Attempted Solutions\n\nThere isn't even a way to programmatically get the lock ID to pass it to `terraform force-unlock -force` which is annoying.\n\n###"
+  },
+  {
+    "number": 38337,
+    "title": "S3 backend: skip_s3_checksum does not disable aws-chunked content-encoding on PutObject",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38337",
+    "created_at": "2026-04-01T18:58:35Z",
+    "user": {
+      "login": "fvrk4n"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "backend/s3"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "## Description\n\nWhen using the S3 backend with a non-AWS S3-compatible object storage (e.g., IBM Cleversafe/COS), `PutObject` requests fail with `403 AccessDenied` even though `skip_s3_checksum = true` is set in the backend configuration.\n\nThe root cause is that `skip_s3_checksum` does not disable the AWS SDK v2's chunked transfer encoding and checksum trailer on `PutObject` requests. The SDK still sends:\n\n```\ncontent-encoding: aws-chunked\nx-amz-content-sha256: STREAMING-UNSIGNED-PAYLOAD-TRAILER"
+  },
+  {
+    "number": 38314,
+    "title": "Upgrade google.golang.org/grpc v1.69.4 to google.golang.org/grpc v1.79.3",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38314",
+    "created_at": "2026-03-25T14:32:06Z",
+    "user": {
+      "login": "Aneeshaukrani"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 3
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.4\n```\n\n### Use Cases\n\nI am not on latest version of terraform, but even the latest version does not have google.golang.org/grpc upgraded to 1.79.3. Can you please upgrade this package as the following CVE has been reported for this 1.69.4 version -- CVE-2026-33186 - https://nvd.nist.gov/vuln/detail/CVE-2026-33186\n\nIt is being flagged as a Security Vulnerability in our scans due to this CVE. \n\n### Attempted Solutions\n\nI am not on latest version of t"
+  },
+  {
+    "number": 38309,
+    "title": "Terraform validate on Ephmereal outputs",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38309",
+    "created_at": "2026-03-23T17:46:29Z",
+    "user": {
+      "login": "blazing234"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nV15\n```\n\n### Terraform Configuration Files\n\nNothing relevant \n\n### Debug Output\n\n```\n...debug output, or link to a gist...\n```\n\n\n### Expected Behavior\n\nTerraform validate shouldn't error out with Ephmereal outputs for modules which are only intended to be used as remote modules. \n\nApparently this was fixed in PR #37850, but it still errors. \n\n### Actual Behavior\n\nEphmereal outputs are not allowed in the context of a root module. \n\n### Steps to Reproduce\nDefine an "
+  },
+  {
+    "number": 38304,
+    "title": "init --upgrade cooldown period for new dependencies",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38304",
+    "created_at": "2026-03-20T18:28:14Z",
+    "user": {
+      "login": "acdha"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 10,
+    "reactions": {
+      "+1": 22
+    },
+    "body": "### Terraform Version\n\n```shell\nn/a\n```\n\n### Use Cases\n\nThis would match the emerging consensus in the industry that upgrading to very recent releases poses an increasing risk of supply-chain attacks. Having a cooldown / minimum age period would give the community time to detect such attacks. Terraform is a tempting target since it is typically run with high-privilege credentials.\n\n### Attempted Solutions\n\nn/a\n\n### Proposal\n\nAdd an option (via the usual CLI / config file / environmental variable"
+  },
+  {
+    "number": 38302,
+    "title": "bug: file descriptor leak in modsdir.WriteSnapshotToDir",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38302",
+    "created_at": "2026-03-20T15:02:37Z",
+    "user": {
+      "login": "buley"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "## Terraform Version\n\nLatest `main` branch (verified in current source before the fix in PR #38311).\n\n## Terraform Configuration Files\n\n```terraform\n# Internal Terraform Core code path only; no end-user configuration is required.\n```\n\n## Debug Output\n\n```text\nN/A. This issue is reproducible by code inspection and by repeatedly calling\n`internal/modsdir.Manifest.WriteSnapshotToDir` in a small Go test.\n```\n\n## Expected Behavior\n\n`WriteSnapshotToDir` should close the file it creates after writing t"
+  },
+  {
+    "number": 38282,
+    "title": "Terraform crash (v1.14.7)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38282",
+    "created_at": "2026-03-17T09:52:10Z",
+    "user": {
+      "login": "ivan-ivkovic"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "backend/s3"
+      }
+    ],
+    "comments": 8,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.7\non linux_amd64\n```\n\n### Terraform Configuration Files\n\n```terraform\nterraform {\n  required_providers {\n    aws = {\n      source  = \"hashicorp/aws\"\n      version = \"= 6.6.0\"\n    }\n  }\n\n  backend \"s3\" {\n    bucket  = \"tfstate-bugreport\"\n    region  = \"eu-central-1\"\n    key     = \"terraform.tfstate\"\n    encrypt = true\n  }\n  required_version = \"= 1.8.2\"\n}\n\nlocals {\n  config = yamldecode(file(\"./config.yaml\"))[terraform.workspace]\n  tags = {\n    Terra"
+  },
+  {
+    "number": 38228,
+    "title": "enhancement: add Alicloud CloudSSO mode credential support for oss backend",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38228",
+    "created_at": "2026-03-03T05:04:12Z",
+    "user": {
+      "login": "peiliqiancdt"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "backend/oss"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.6\non darwin_arm64\n+ provider registry.terraform.io/aliyun/alicloud v1.272.0\n+ provider registry.terraform.io/hashicorp/random v3.8.1\n```\n\n### Use Cases\n\nWe use `CloudSSO` mode to configure our Alicloud CLI credentials in local environment. It will add a credential entry in `~/.aliyun/config.json` like:\n\n```\n{\n\t\"name\": \"default\",\n\t\"mode\": \"CloudSSO\",\n\t\"access_key_id\": \"<access_key_id>\",\n\t\"access_key_secret\": \"<access_key_secret>\",\n\t\"sts_token\": \"<st"
+  },
+  {
+    "number": 38154,
+    "title": "Support built-in `action` source that are `local-exec` or `remote-exec` compatible",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38154",
+    "created_at": "2026-02-12T02:51:14Z",
+    "user": {
+      "login": "skokado"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 3
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\non linux_amd64\n```\n\n### Use Cases\n\nBasically `local-exec`, `remote-exec` compatibility hook with `action` block.\n\n- Building deployment packages (e.g., zip archives) before Lambda/Cloud Functions creation\n- Running remote provisioning scripts tied to resource lifecycle events\n- Pre-flight validation checks before resource creation\n\n### Attempted Solutions\n\nCurrently, executing commands requires `terraform_data` resource with provisioners and expl"
+  },
+  {
+    "number": 38136,
+    "title": "Support mode: External or OIDC when passing profile value in oss backend (Alicloud)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38136",
+    "created_at": "2026-02-09T17:59:14Z",
+    "user": {
+      "login": "sofidmsilva"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "backend/oss"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nlatest\n```\n\n### Use Cases\n\nFor alicloud I want to use the mode: External to run a process_credentials to authenticate or even OIDC on the oss when I'm passing a profile in the configuration.\n\n### Attempted Solutions\n\nI analyze the sdk that is being used and it seems that it it doesn't have an option to use external mode to run a command an authenticate or OIDC.\n\n### Proposal\n\n_No response_\n\n### References\n\n_No response_"
+  },
+  {
+    "number": 38126,
+    "title": "Native CLI Summary View for Plan (-summary flag)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38126",
+    "created_at": "2026-02-04T19:03:10Z",
+    "user": {
+      "login": "NicolaSpreafico"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 4
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\non linux_amd64\n```\n\n### Use Cases\n\nWhen running `terraform plan` on large infrastructure stacks, the output can span thousands of lines. \n\nEngineers must scroll extensively to understand the scope of changes. While the final line summarizes the counts (`Plan: X to add, Y to change, Z to destroy`), it lacks context on which resources are affected without scrolling back up, potentially losing the buffer history. \n\nFurthermore, \"Replacements\" are te"
+  },
+  {
+    "number": 38110,
+    "title": "Support Passing and Evaluating Deferred Expressions (Functions) via Variables at Point of Use",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38110",
+    "created_at": "2026-01-29T12:52:19Z",
+    "user": {
+      "login": "emoshaya"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "config"
+      },
+      {
+        "name": "functions"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\n```\n\n### Use Cases\n\nTerraform variables are values, not expressions. If a user passes a string that looks like an expression (e.g., ${upper(\"test\")}), Terraform treats it as a literal string (or it is rejected depending on context). There is currently no supported mechanism to:\n\n1. Pass an expression via a variable (including Terraform functions), and\n3. Have Terraform evaluate that expression when the variable is used as an argument to a resourc"
+  },
+  {
+    "number": 38105,
+    "title": "Timeout while waiting for plugin to start for the AWS provider.",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38105",
+    "created_at": "2026-01-28T00:58:37Z",
+    "user": {
+      "login": "astove17"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "waiting-response"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.11.0\non darwin_arm64\n```\n\n### Terraform Configuration Files\n\nUnable due to security\n\n### Debug Output\n\nterragrunt plan\n13:48:05.326 WARN   Config ../../../../hub/terragrunt.hcl is a dependency of ./terragrunt.hcl that has no outputs, but mock outputs provided and returning those in dependency output.\n13:50:46.592 STDOUT terraform: Releasing state lock. This may take a few moments...\n13:50:47.118 STDERR terraform: \u2577\n13:50:47.119 STDERR terraform: \u2502 Err"
+  },
+  {
+    "number": 38097,
+    "title": "terraform plan -detailed-exitcode returns exit code 2 while displaying \"No changes\" when output expression type changes",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38097",
+    "created_at": "2026-01-26T15:18:25Z",
+    "user": {
+      "login": "AkashiSN"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 6,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3 and v1.15.0-alpha20251203\n```\n\n### Terraform Configuration Files\n\n```terraform\n# main.tf\nlocals {\n    empty_list = tolist([])\n}\n\noutput \"result\" {\n    value = {\n        items = length(local.empty_list) > 0 ? local.empty_list : [\"\"]\n    }\n}\n```\n\nAfter initial apply, change to:\n\n```terraform\n# main.tf (modified)\noutput \"result\" {\n    value = {\n        items = [\"\"]\n    }\n}\n```\n\n\n### Debug Output\n\n```\n2026-01-26T23:56:58.245+0900 [INFO]  Terraform ve"
+  },
+  {
+    "number": 38092,
+    "title": "Add move count to terraform plan summary",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38092",
+    "created_at": "2026-01-24T04:52:39Z",
+    "user": {
+      "login": "thekbb"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 3
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/archive v2.7.1\n+ provider registry.terraform.io/hashicorp/aws v6.28.0\n+ provider registry.terraform.io/hashicorp/null v3.2.4\n+ provider registry.terraform.io/hashicorp/random v3.\n```\n\n### Use Cases\n\nCurrently the plan output does note that a resources has moved.\n\n```\n  # resource_type.name_new will be updated in-place\n  # (moved from resource_type.name_old)\n```\n\nI'd like that to be in the"
+  },
+  {
+    "number": 38084,
+    "title": "terraform test skipped (because of provider error?), no error output or non-zero exit code",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38084",
+    "created_at": "2026-01-21T22:17:06Z",
+    "user": {
+      "login": "kimor79"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "waiting-response"
+      },
+      {
+        "name": "confirmed"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 5,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/kubernetes v3.0.1\n```\n\n### Terraform Configuration Files\n\n```terraform\n# main.tf\nresource \"kubernetes_manifest\" \"this\" {\n  manifest = {\n    apiVersion = \"test\"\n    kind       = \"test\"\n    metadata = {\n      name = \"test\"\n    }\n  }\n}\n```\n\n```terraform\n# tftest\nprovider \"kubernetes\" {\n  api_version = \"client.authentication.k8s.io/v1beta1\"\n}\n\nrun \"test-1\" {\n  command = plan\n}\n```\n\n### Debug "
+  },
+  {
+    "number": 38080,
+    "title": "Build pkg for macOS",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38080",
+    "created_at": "2026-01-21T12:12:31Z",
+    "user": {
+      "login": "charliwest"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "waiting-response"
+      }
+    ],
+    "comments": 5,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\non darwin_arm64\n```\n\n### Use Cases\n\nDistributing terraform in enterprise \n\n### Attempted Solutions\n\nCan be scripted, but difficult to automate easily\n\n### Proposal\n\nA pkg is built to make version and automation easy. \n\nA guide on it can be found here https://scriptingosx.com/2023/08/build-a-notarized-package-with-a-swift-package-manager-executable/\n\n### References\n\n_No response_"
+  },
+  {
+    "number": 38068,
+    "title": "[Feature] Improve terraform plan output by summarizing replacements separately from add/destroy counts",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38068",
+    "created_at": "2026-01-16T05:41:13Z",
+    "user": {
+      "login": "nrv-96"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.9.2\n```\n\n### Use Cases\n\nWhen running terraform plan, resources that require replacement are currently represented as both an addition and a destruction in the final plan summary, for example:\n`Plan: 4 to add, 21 to change, 4 to destroy.`\n\nIn real-world usage\u2014especially in CI/CD pipelines, large infrastructures, and production environments\u2014this summary can be confusing because:\n\n- A replacement is conceptually a single operation, not two independent ac"
+  },
+  {
+    "number": 38067,
+    "title": "Non-HashiCorp providers passed under aliases are reporting errors when running terraform plan with not-initialized module",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38067",
+    "created_at": "2026-01-15T14:51:05Z",
+    "user": {
+      "login": "magul"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\n$ terraform version\nTerraform v1.14.3\non darwin_arm64\n+ provider registry.terraform.io/cyrilgdn/postgresql v1.26.0\n```\n\n### Terraform Configuration Files\n\n# ./main.tf\n```terraform\nterraform {\n  required_providers {\n    postgresql = {\n      source = \"cyrilgdn/postgresql\"\n    }\n  }\n}\n\nprovider \"postgresql\" {\n  alias    = \"source\"\n  host     = \"127.0.0.1\"\n  port     = 5432\n  username = \"postgres\"\n  password = \"postgres\"\n}\n\nprovider \"postgresql\" {\n  alias    = \"destin"
+  },
+  {
+    "number": 38062,
+    "title": "init: Change in behaviour when using `-from-module=<path>` from a working directory within that path",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38062",
+    "created_at": "2026-01-14T16:03:52Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "breaking-change"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "# Background\n\nIssue https://github.com/hashicorp/terraform/issues/518 identified that a directory would be recursively copied if Terraform's current working directory was included in [the path of the source module being copied while initialising the working directory](https://developer.hashicorp.com/terraform/cli/commands/init#copy-a-source-module).\n\nI.e. from this:\n\n```\n.\n\u251c\u2500\u2500 issue518.tf\n\u2514\u2500\u2500 foo/               << current directory\n    \u2514\u2500\u2500 (empty)\n```\n\nIf you used `-from-module=./..` as the sour"
+  },
+  {
+    "number": 38053,
+    "title": "Truncated resource id in log during destroy prevents proper masking by CI/CD platform",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38053",
+    "created_at": "2026-01-12T20:54:41Z",
+    "user": {
+      "login": "nickel-tyler"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "UX"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\n1.13\n```\n\n### Terraform Configuration Files\n\n```terraform\nany configuration where a resource's ID contains a variable marked sensitive/hidden in the CI/CD platform, where terraform destroy would also truncate the resource ID in log output.\n```\n\nGitlab var example\n\n<img width=\"394\" height=\"841\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/46efcdfa-e0b7-4b9e-91d0-c10288abf1c5\" />\n\n### Debug Output\n\n<img width=\"1822\" height=\"282\" alt=\"Image\" src=\"https"
+  },
+  {
+    "number": 38041,
+    "title": "Specify a module version when using terraform init -from-module and a private registry module source",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38041",
+    "created_at": "2026-01-06T19:36:51Z",
+    "user": {
+      "login": "bminahan73"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      }
+    ],
+    "comments": 6,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\n1.9.8\n```\n\n### Use Cases\n\nI want to fully automate creation of new terraform configurations, starting from a module in a private module registry, saving developers time with initial project setup in a scaled org.\n\n### Attempted Solutions\n\n-from-module seemed like the best way to do this, as I could simply run `terraform init -from-module=<my module>` in a new git repo as a starting point for a new configuration. I was also evaluating `terragrunt scaffold` for this"
+  },
+  {
+    "number": 38032,
+    "title": "`terraform query -generate-config-out`: specify target resource address",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38032",
+    "created_at": "2025-12-28T00:39:48Z",
+    "user": {
+      "login": "rroctavian"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "import"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 6,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\non darwin_arm64\n```\n\n### Use Cases\n\nI want to discover existing cloud infrastructure using `terraform query` and import it into **existing** Terraform resource definitions.\n\n**Scenario:** I have Terraform modules with protected resources:\n\n```hcl\nresource \"aws_s3_bucket\" \"existing_data_lake\" {\n  bucket = \"my-data-lake\"\n\n  lifecycle {\n    prevent_destroy = true\n  }\n}\n```\n\nThese resources often predate the current Terraform codebase, were created m"
+  },
+  {
+    "number": 38026,
+    "title": "Failed to close stacks configuration handle during validation",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38026",
+    "created_at": "2025-12-22T16:51:05Z",
+    "user": {
+      "login": "gbonk"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "stacks"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.3\non linux_amd64\n+ provider registry.terraform.io/hashicorp/azurerm v4.57.0\n```\n\n### Terraform Configuration Files\n\n```\n\n\ncomponent \"default\" {\n\n  source = \"./storage-account\"\n\n  inputs = {\n\n    organization     = var.organization\n    zone             = var.zone\n    region           = var.region\n    environment      = var.environment\n    application-name = var.application-name\n  }\n\n  providers = {\n    azurerm = provider.azurerm.this\n  }\n\n}\n\n\n\nlocal"
+  },
+  {
+    "number": 38017,
+    "title": "Update `terraform validate` to identify when `replace_triggered_by` references an attribute that's not in a resource's schema",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38017",
+    "created_at": "2025-12-17T20:04:07Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.0-dev\non darwin_arm64\n```\n\n### Use Cases\n\nUsers that habitually check the validity of their config using `terraform validate` should be able to detect when a `replace_triggered_by` attribute references an attribute that doesn't exist in that reference's schema. Updating the `validate` command would allow errors like this to be fixed before they cause disruption to a plan-apply workflow.\n\n### Attempted Solutions\n\nThere isn't really a work around for"
+  },
+  {
+    "number": 38012,
+    "title": "The `terraform` block's `experiments` list is ignored in `_override.tf` files, but terminal output suggests it is used.",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38012",
+    "created_at": "2025-12-15T16:13:41Z",
+    "user": {
+      "login": "SarahFrench"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.15.0-dev\non darwin_arm64\n\n\nUsing a binary built from source with _experiments enabled_.\n```\n\n### Terraform Configuration Files\n\nNote that this is hard to manually test as there are no current (i.e. active, usable) experiments enabled in the code base. Use this branch to use a version of Terraform that contains a fake experiment called `current`: https://github.com/hashicorp/terraform/tree/example-current-experiment\n\n\nmain.tf\n\n```terraform\nterraform {\n"
+  },
+  {
+    "number": 38004,
+    "title": "Provisioner support for validation commands (during plan) and update commands (during apply)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/38004",
+    "created_at": "2025-12-12T03:15:55Z",
+    "user": {
+      "login": "AdrianC-BBL"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "actions"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nv1.14\n```\n\n### Use Cases\n\nWhen dealing with difficult APIs for which a working provider does not exist it is sometimes pragmatically necessary to resort to using provisioners to invoke scripts to call those difficult APIs for external system configuration setup and (eventual) removal.  Obviously this is suboptimal, but unless you are able to code in _go_ and build a new provider or fix existing provider shortcomings for yourself, the only other option is to not us"
+  },
+  {
+    "number": 37988,
+    "title": "Ability to have tests use unique state keys by default",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37988",
+    "created_at": "2025-12-10T20:47:52Z",
+    "user": {
+      "login": "blowfishpro"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "terraform test"
+      }
+    ],
+    "comments": 5,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\n1.14.1\n```\n\n### Use Cases\n\nWhile the ability to have tests inherit state from each other is useful, my team has found that the majority of tests we write do not need any state inheritance, and thus can be run in parallel.  Right now it is somewhat tedious and error prone to set that up, as each test requires a unique state key.\n\n### Attempted Solutions\n\nThe workaround right now is to give each test a unique state key.\n\n```terraform\ntest {\n  parallel = true\n}\n\nrun "
+  },
+  {
+    "number": 37979,
+    "title": "Allow non-local sources for `mock_provider`",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37979",
+    "created_at": "2025-12-08T12:57:08Z",
+    "user": {
+      "login": "amaxine"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "terraform test"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.1\non linux_amd64\n```\n\n### Use Cases\n\nWe extensively use terraform tests across our resources to ensure changes don't result in unexpected breakage in behaviour that are neither validated by Terraform or providers. Because of this, we have an extensive library of mock data sources that are compatible with our input validation.\n\nThese values, such as valid json for `aws_iam_policy_document` or valid ARNs are extremely reusable, however currently sour"
+  },
+  {
+    "number": 37970,
+    "title": "`terraform test`: using `-test-directory` breaks module initialization",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37970",
+    "created_at": "2025-12-03T21:03:11Z",
+    "user": {
+      "login": "edgetools"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "terraform test"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\n> terraform version\nTerraform v1.14.0\non darwin_arm64\n```\n\n### Terraform Configuration Files\n\ncommand:\n\n`terraform init`\n\ndirectory structure:\n\n```\ntests/modules/foo/main.tf\ntests/subdir/test_foo.tftest.hcl\n```\n\n`tests/modules/foo/main.tf`:\n\n```hcl\nresource \"time_sleep\" \"wait_5_seconds\" {\n  create_duration = \"5s\"\n}\n```\n\n`tests/subdir/test_foo.tftest.hcl`:\n\n```hcl\nrun \"use_foo_module\" {\n  module {\n    source = \"./tests/modules/foo\"\n  }\n}\n```\n\n### Debug Output\n\n```\n"
+  },
+  {
+    "number": 37967,
+    "title": "Feature Request: Ability to whitelist/restrict Environment Variables passed to Provider Plugins",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37967",
+    "created_at": "2025-12-03T14:51:53Z",
+    "user": {
+      "login": "or-shachar"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 5,
+    "reactions": {
+      "+1": 7
+    },
+    "body": "### Terraform Version\n\n```shell\n1.x\n```\n\n### Use Cases\n\nCurrently, when Terraform initializes a provider, it spawns the provider plugin as a child process. By default, this child process inherits the entire environment context of the parent terraform CLI process.\n\nThis means that if I run terraform apply, every configured provider (AWS, Azure, Kubernetes, etc.) has visibility into every environment variable present in the shell (e.g., `GITHUB_TOKEN`, `AWS_ACCESS_KEY_ID`, `ARM_CLIENT_ID`), regard"
+  },
+  {
+    "number": 37960,
+    "title": "`terraform test`: support failure assertions for lifecycle errors",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37960",
+    "created_at": "2025-12-02T19:53:56Z",
+    "user": {
+      "login": "edgetools"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "terraform test"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\n> terraform version\nTerraform v1.14.0\non darwin_arm64\n```\n\n### Use Cases\n\nCurrently, `terraform test` supports assertions for failure conditions using `expect_failures`.\n\nHowever, as indicated by the documentation and other similar issues, this feature is only used to test custom conditions.\n\nI have a use case where I am attempting to do opaque-box testing using terraform, meaning I am running a module and then using a \"loader\" module to verify the output (similar"
+  },
+  {
+    "number": 37953,
+    "title": "produce a better error message when the stored backend configuration is corrupted",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37953",
+    "created_at": "2025-12-01T10:39:09Z",
+    "user": {
+      "login": "AleksandrSor"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "cli"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nv1.14.0\n```\n\n### Terraform Configuration Files\n\n```terraform\nterraform {\n  backend \"local\" {\n    path = \".terraform/terraform.tfstate\"\n  }\n}\n\ndata \"aws_ami\" \"al2023\" {\n  most_recent = true\n\n  filter {\n    name   = \"architecture\"\n    values = [\"x86_64\"]\n  }\n\n  filter {\n    name   = \"manifest-location\"\n    values = [\"amazon/al2023-ami-2023.*\"] # al2023-ami-ecs-hvm-2023.* for ecs images\n  }\n\n  filter {\n    name   = \"virtualization-type\"\n    values = [\"hvm\"]\n  }\n\n  fi"
+  },
+  {
+    "number": 37939,
+    "title": "Unable to mock data source attribute of list type using `override_data`, suspected due to missing type conversion",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37939",
+    "created_at": "2025-11-25T17:37:24Z",
+    "user": {
+      "login": "sanderginn"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "terraform test"
+      }
+    ],
+    "comments": 6,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\n1.14.0\n```\n\n### Terraform Configuration Files\n\n## main.tf\n```terraform\nterraform {\n  required_providers {\n    databricks = {\n      source  = \"databricks/databricks\"\n      version = \"1.97.0\"\n    }\n  }\n\n  required_version = \">= 1.14.0\"\n}\n\ndata \"databricks_external_location\" \"test\" {\n  name = \"test\"\n}\n```\n\n## test.tftest.hcl\n```hcl\nmock_provider \"databricks\" {}\n\nrun \"nothing_mocked_failure_shows_generated_id\" {\n  override_data {\n    target = data.databricks_external_"
+  },
+  {
+    "number": 37885,
+    "title": "Variable containing hyphens can not be set using environment variable",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37885",
+    "created_at": "2025-11-07T14:43:57Z",
+    "user": {
+      "login": "colllijo"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "cli"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.5\non linux_amd64\n+ provider registry.terraform.io/hashicorp/null v3.2.4\n```\n\n### Terraform Configuration Files\n\n```terraform\nterraform {\n  required_version = \">= 1.13.5\"\n}\n\nvariable \"works\" {\n  type = string\n}\n\nvariable \"does-not-work\" {\n  type = string\n}\n\nresource \"null_resource\" \"dummy\" {\n  provisioner \"local-exec\" {\n    command = \"echo 'This works: ${var.works}, but this doesn't: ${var.does-not-work}\"\n  }\n}\n```\n\n### Debug Output\n\n[debug.log](htt"
+  },
+  {
+    "number": 37862,
+    "title": "[Feature request][test]: Allow overriding Block in `override_data`",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37862",
+    "created_at": "2025-11-03T11:18:01Z",
+    "user": {
+      "login": "IppX"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "terraform test"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.4\non darwin_arm64\n```\n\n### Use Cases\n\nWhen trying to use `override_data` in a unit test, if an argument in the underlying data source is implemented with a [Block](https://pkg.go.dev/github.com/hashicorp/terraform-plugin-framework/datasource/schema#Block), `override_data` does not override the argument.\n\nThis is silent and leads to a frustrating experience as a developer.\n\nI'm posting this request following a discussion in Discuss (see references s"
+  },
+  {
+    "number": 37858,
+    "title": "Update with modernize: rangeint and stringsseq",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37858",
+    "created_at": "2025-11-02T09:24:12Z",
+    "user": {
+      "login": "atombrella"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 7,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nThe main branch\n```\n\n### Use Cases\n\nJust improving the speed of Terraform, updating it with new GoLang features that are faster and more semantic-sugar-like.\n\n### Attempted Solutions\n\nI'd open a PR to update the cases of the `rangeint` matches from modernize I found, but I don't want to spend time on it if it won't receive attention by the maintainers.\n\n### Proposal\n\nhttps://pkg.go.dev/golang.org/x/tools/gopls/internal/analysis/modernize has a list of suggestions "
+  },
+  {
+    "number": 37846,
+    "title": "Azurerm Backend Configuration Behaviour Change",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37846",
+    "created_at": "2025-10-30T15:08:41Z",
+    "user": {
+      "login": "pwoelfle-unique"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "backend"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 10
+    },
+    "body": "### Terraform Version\n\n```shell\n1.13.0\n```\n\n### Terraform Configuration Files\n\n_/project/terraform/main.tf_\n```terraform\nterraform {\n  backend \"azurerm\" {\n    # Configured via -backend-config=backend-config.tf\n  }\n  required_providers {\n    azurerm = { source = \"hashicorp/azurerm\", version = \"~> 4\" }\n  }\n}\n\nprovider \"azurerm\" {\n  features {}\n}\n\nresource \"azurerm_resource_group\" \"example\" {\n  name     = \"example-resources\"\n  location = \"West Europe\"\n}\n```\n\n__/project/backend-config.hcl__\n```terra"
+  },
+  {
+    "number": 37845,
+    "title": "Support thousand separator for number type values",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37845",
+    "created_at": "2025-10-30T11:03:40Z",
+    "user": {
+      "login": "kevin-kortum-trustedshops"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 5
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.4\non darwin_arm64\n```\n\n### Use Cases\n\nWhen writing big numbers it is hard to visually see what number it is. For a concrete example, the `terraform-aws-provider` supports the `cloudwatch_metric_alarm` resource which has a field called `threshold` (see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm#threshold-1).\n\nYou can use this resource to create an alert in AWS Cloudwatch if a specific value do"
+  },
+  {
+    "number": 37839,
+    "title": "Ignore drift, enforce changes",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37839",
+    "created_at": "2025-10-29T12:29:52Z",
+    "user": {
+      "login": "hobbyhorse"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "config"
+      }
+    ],
+    "comments": 6,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.9.1\non darwin_arm64\n```\n\n### Use Cases\n\nThere will be other applications of the idea, but in our case we need to be able to scale resources outside of terraform, and have terraform ignore the scaling that we did. This is easy enough with the `ignore_changes` lifecycle, but we also want terraform to make scaling changes if we update the terraform code to scale. \n\nSo, if we scaled via the AWS console, then ignore it. If we scale via the code, perform it"
+  },
+  {
+    "number": 37835,
+    "title": "Allow expect_failure to assert on an error message",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37835",
+    "created_at": "2025-10-29T09:18:21Z",
+    "user": {
+      "login": "bebold-jhr"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "terraform test"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.4\non darwin_arm64\n```\n\n### Use Cases\n\nI'm doing [a lot of input validation](https://github.com/be-bold/terraform-aws-account-lookup/blob/main/modules/filter/tests/input_validation.tftest.hcl). However I would like to be able to not only check that validation fails by using:\n\n```hcl\nexpect_failures = [\n    var.input,\n  ]\n```\n\nI wan to be able to pinpoint the exact cause.\nThe reason is that the current `expect_failure` does not guarantee that my test"
+  },
+  {
+    "number": 37822,
+    "title": "Stacks: Ephemeral values can't be passed between components",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37822",
+    "created_at": "2025-10-28T08:45:22Z",
+    "user": {
+      "login": "liamcervante"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "stacks"
+      }
+    ],
+    "comments": 0,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nn/a\n```\n\n### Terraform Configuration Files\n\nn/a\n\n### Debug Output\n\nn/a\n\n### Expected Behavior\n\nYou should be able to link an ephemeral output from one component to an ephemeral input in another component.\n\n### Actual Behavior\n\nThe ephemeral values are not written into the state file (correctly), so the result values from each component do not include the ephemeral values.\n\nInstead, the result values for components should be computed using the internal named values"
+  },
+  {
+    "number": 37819,
+    "title": "Propagate module outputs",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37819",
+    "created_at": "2025-10-27T21:08:04Z",
+    "user": {
+      "login": "supergibbs"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.4\non darwin_arm64\n```\n\n### Use Cases\n\n- I have an internal module that sets up our basic application infrastructure and is used by a lot of apps. Occasionally I find I want to add an output and would like a way to have all the uses of the module output it too.\n- For most projects, I create local modules and have multiple environments use it with different variable files. Each env has to output the module outputs.\n\n### Attempted Solutions\n\nCurrently"
+  },
+  {
+    "number": 37749,
+    "title": "[Feature Request]: support for iterative assertions in validation",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37749",
+    "created_at": "2025-10-09T10:51:24Z",
+    "user": {
+      "login": "ascopes"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "backend"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\n1.13.3\n```\n\n### Use Cases\n\n- Clear validation messages to help consumers of modules\n- Code that is easier to read\n- Reporting each instance of a failure concisely to direct the course of action rather than users having to manually pull modules apart or add other hacks to calculate the incorrect value to fix.\n- Alignment with features on `resource` blocks for iterative block declaration.\n\n### Proposal\n\nI write a number of reusable modules within my organization tha"
+  },
+  {
+    "number": 37729,
+    "title": "Allow augmenting resource errors with custom messages",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37729",
+    "created_at": "2025-10-06T17:45:14Z",
+    "user": {
+      "login": "drewmullen"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Use Case\n\nLooking for a way to augment the error message. To communicate extra information from the configuration.\n\nNot suggesting this as a final proposal, but just an example, something as simple as the following may work:\n\n```hcl\nlifecycle {\n  failure_message = \"some went wrong, you may need to request access to this resource type\"\n}\n```\n\nAnd that message could be added as a separate diagnostic attributed to the resource block in the configuration.\n\n"
+  },
+  {
+    "number": 37698,
+    "title": "Terraform stacks create returns exit code 0 on creating a stack by the same name as an existing stack",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37698",
+    "created_at": "2025-09-30T03:48:52Z",
+    "user": {
+      "login": "quixoticmonk"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "cli"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "cloud"
+      },
+      {
+        "name": "stacks"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nterraform --version\nTerraform v1.13.0\non darwin_arm64\n```\n\n### Terraform Configuration Files\n\nNo specific configuration. The issue is on the `terraform stacks` subcommand.\n\n```\n\u276f terraform stacks  create  -organization-name manu-project-name \"Default Project\" -stack-name \"manuchn-stacks-2025\"\nCreating stack...\nStack: Created stack 'manuchn-stacks-2025'\n\n\u276f terraform stacks  create  -organization-name manu -project-name \"Default Project\" -stack-name \"manuchn-stacks-"
+  },
+  {
+    "number": 37697,
+    "title": "Feature Request: Provider-independent, resource metadata/tags/labels",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37697",
+    "created_at": "2025-09-29T18:55:44Z",
+    "user": {
+      "login": "jcmcken"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 3
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.11.4\non linux_amd64\n```\n\n### Use Cases\n\nI want to store key-value string metadata (i.e. ``map(string)``) for resources independent of the provider. This metadata would be stored within the state file in the same map as the resource itself (e.g. under a field ``metadata`` next to the other fields``values``, ``sensitive_values``, etc. if you look at the JSON representation of the state), but would not be used by Terraform itself. The purpose of this met"
+  },
+  {
+    "number": 37691,
+    "title": "Add duration of actions invoked to terraform apply output",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37691",
+    "created_at": "2025-09-26T18:16:15Z",
+    "user": {
+      "login": "steve-hashi"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      },
+      {
+        "name": "actions"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.14.0-beta2\non darwin_arm64\n```\n\n### Use Cases\n\nWhen I run a `terraform apply` with actions that are triggered, I would like to know the execution time taken for each action.\n\nSome users said it would be nice to have this, so it would be easier to debug long running actions when there are multiple actions being invoked.\n\n### Attempted Solutions\n\nNone, guess I could go to every Provider that writes actions and tell them to wrap theirs with timer.\n\n### P"
+  },
+  {
+    "number": 37686,
+    "title": "Support needed for Terraform S3 backend state for AWS European Sovereign Cloud",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37686",
+    "created_at": "2025-09-26T13:58:01Z",
+    "user": {
+      "login": "Raptors06"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "backend/s3"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 6
+    },
+    "body": "### Terraform Version\n\n```shell\n\u2570\u2500 terraform version                                                                                                                           \u2500\u256f\nTerraform v1.4.6\non darwin_arm64\n```\n\n### Terraform Configuration Files\n\n```terraform\nterraform {\n  backend \"s3\" {\n    encrypt        = true\n    region         = \"eusc-de-east-1\"\n    bucket         = \"any-bucket-will-do\"\n    dynamodb_table = \"any-table-will-do\"\n    key            = \"state.tfstate\"\n  }\n}\n```\n\n\n### Debug O"
+  },
+  {
+    "number": 37680,
+    "title": "Terraform crash reported in backend/azure (long running, expired credentials)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37680",
+    "created_at": "2025-09-26T06:07:13Z",
+    "user": {
+      "login": "breml"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "backend/azure"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\n$ terraform version\nTerraform v1.10.0\non linux_amd64\n```\n\n### Terraform Configuration Files\n\nCan not easily share this and I doubt, that it is actually very relevant for this crash. The thing that I think is noteworthy is, that the Terraform configuration in question manages resources outside of Azure (in the case in question a Elastic Cloud Deployment) and Azure is only used for state management.\n\n### Debug Output\n\nn/a\n\nThe issue is not (easily) reproducible for "
+  },
+  {
+    "number": 37679,
+    "title": "Enable to set `Who` in a state lock",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37679",
+    "created_at": "2025-09-26T05:14:19Z",
+    "user": {
+      "login": "sato-s"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 8
+    },
+    "body": "### Terraform Version\n\n```shell\n1.14.0\n```\n\n### Use Cases\n\nIf we have a conflicting lock, terraform shows the following message.\n\n```\nError message: writing \"[somewhere].tflock\"\nfailed: googleapi: Error 412: At least one of the pre-conditions you\nspecified did not hold., conditionNotMet\nLock Info:\n  ID:        8888888888888888\n  Path:      [somewhere]\n  Operation: OperationTypeInvalid\n  Who:       user@hostname\n  Version:   1.14.0\n  Created:   2025-09-26 03:05:44.03612 +0000 UTC\n  Info:      \n``"
+  },
+  {
+    "number": 37670,
+    "title": "Variable unpacking for easy module resource parameter matching",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37670",
+    "created_at": "2025-09-24T19:39:53Z",
+    "user": {
+      "login": "drewmullen"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 5,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Explanation / setup\n\n\nSay I have a module that allows users to set some specific values on resources. The common approach is to define a variable for each parameter \n\n#### root module\n```hcl\nvariable \"vpc_region\" {}\nvariable \"vpc_cidr\" {}\n# ... etc\n\nmodule \"vpc\" {\n   region = var.vpc_region\n   cidr   = var.vpc_cidr\n}\n```\n\n#### module\n\nThen inside the module code we map each var to the resource. This also requires redefining the variables\n\n```hcl\nvariable \"vpc_region\" {}\nvariable \"vpc_cidr\" {"
+  },
+  {
+    "number": 37660,
+    "title": "Assign or validate a value based on resource prior state",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37660",
+    "created_at": "2025-09-23T23:16:59Z",
+    "user": {
+      "login": "nyarly"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 9,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.9.8\n```\n\n### Use Cases\n\nI'm operating a GKE cluster. We have a general configuration module that sets up its node pool. A module variable controls the size of the pool.\n\nA \"blast radius\" issue we have is that the size of the pool can be reduced unintentionally. The consequence is short outages while we hurry the scale-down and correct.\n\n### Attempted Solutions\n\nlifecycle { precondition { condition = self.node_count ...}}\nCan't use self in a preconditi"
+  },
+  {
+    "number": 37659,
+    "title": "Enhancement: add '-target' option to 'terraform show' command",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37659",
+    "created_at": "2025-09-23T17:42:07Z",
+    "user": {
+      "login": "erikpaasonen"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 5
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.3\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.14.1\n```\n\n### Use Cases\n\nFrom time to time, there are useful warnings which are output in human-readable format and which are properly designed to grab the attention of a human browsing the output of `terraform show [plan-file]`. One such useful output is the warning that the plan includes destruction of an imported resource:\n```\n  # module.vpc.aws_nat_gateway.this[0] must be repla"
+  },
+  {
+    "number": 37651,
+    "title": "Backend fallback / Support for multiple backends",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37651",
+    "created_at": "2025-09-21T11:59:47Z",
+    "user": {
+      "login": "Syntax3rror404"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "backend"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\n1.13.3\n```\n\n### Use Cases\n\nI have a case, in which a bootstrap of a k8s talos cluster creates a local state, because kubernetes backend is not possible at this moment. But after the bootstrap I want to move and use the state from this time from the kubernetes backend. \n\nThe actual workaround for this is by manual uncomment one of the backends \n\n```hcl\n# local backend use for bootstrap\nterraform {\n  backend \"local\" {\n    path = \"./terraform.tfstate\"\n  }\n}\n\n# k8s ba"
+  },
+  {
+    "number": 37644,
+    "title": "S3 Backend: State retrieval fails on apply but still returns success",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37644",
+    "created_at": "2025-09-19T15:45:06Z",
+    "user": {
+      "login": "Brian-Guenther"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "backend/s3"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\n1.12.2\n```\n\n### Terraform Configuration Files\n\n```json\n{\n    \"terraform\": {\n      \"backend\": {\n        \"s3\": {\n          \"bucket\": \"terraform-state\",\n          \"region\": \"us-east-1\",\n          \"key\": \"terraform.tfstate\"\n        }\n      }\n    }\n  }\n\n```\n\n### Debug Output\n\n```\n2025-09-19T13:30:35.991Z [DEBUG] backend-s3: request failed with unretryable error https response error StatusCode: 404, RequestID: REDACTED, HostID: REDACTED, NotFound: : aws.region=us-east-1"
+  },
+  {
+    "number": 37640,
+    "title": "Can't save Terraform state to OVHCloud object storage bucket",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform/issues/37640",
+    "created_at": "2025-09-19T07:20:14Z",
+    "user": {
+      "login": "olivierbouchomsdebugged"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "backend/s3"
+      },
+      {
+        "name": "new"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Version\n\n```shell\nTerraform v1.13.3\non darwin_arm64\n```\n\n### Terraform Configuration Files\n\nbackend.conf:\n\n```\naccess_key = \"xxx\"\nsecret_key = \"xxx\"\n```\n\n\nbackend.tf:\n\n```terraform\nterraform {\n  backend \"s3\" {\n    bucket = \"app-terraform-state\"\n    key    = \"global.tfstate\"\n    region = \"eu-west-lz-ams-a\"\n    endpoints = {\n      s3 = \"https://s3.eu-west-lz-ams-a.cloud.ovh.net/\"\n    }\n    skip_credentials_validation = true\n    skip_region_validation      = true\n    skip_requesting_a"
+  }
+]

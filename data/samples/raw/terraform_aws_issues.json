@@ -1,0 +1,2379 @@
+[
+  {
+    "number": 49757,
+    "title": "r/aws_rds_instance_automated_backups_replication: all acceptance tests failing",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49757",
+    "created_at": "2026-08-31T13:29:38Z",
+    "user": {
+      "login": "jar-b"
+    },
+    "labels": [
+      {
+        "name": "tests"
+      },
+      {
+        "name": "service/rds"
+      },
+      {
+        "name": "technical-debt"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nFailure is similar across all acceptance test cases, an `InvalidParameterValue` exception when calling `DescribeDBInstanceAutomatedBackups`. \n\n```\n=== NAME  TestAccRDSInstanceAutomatedBackupsReplication_basic\n    instance_automated_backups_replication_test.go:30: Step 1/2 error: Check failed: Check 1/2 error: operation error RDS: DescribeDBInstanceAutomatedBackups, https response error StatusCode: 400, RequestID: 16d64c29-22c9-488c-9e10-7778b5732e19, api error InvalidParameterVa"
+  },
+  {
+    "number": 49753,
+    "title": "aws_savingsplans_savings_plan: Create fails with \"Provider returned invalid result object after apply\" for purchase_time on immediate (non-future-dated) No Upfront purchases",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49753",
+    "created_at": "2026-08-31T11:15:03Z",
+    "user": {
+      "login": "yukinakanaka"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/savingsplans"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "\n### Terraform and AWS Provider Version\n```console\nTerraform v1.13.3\n+ provider registry.terraform.io/hashicorp/aws v6.62.0\n```\n\n### Affected Resource(s) or Data Source(s)\n* `aws_savingsplans_savings_plan`\n\n### Expected Behavior\n`terraform apply` creates the Savings Plan and completes successfully, with `purchase_time` populated with a known value in state.\n\n### Actual Behavior\n`terraform apply` creates the Savings Plan (confirmed immediately Active in the AWS Console, at the configured commitme"
+  },
+  {
+    "number": 49740,
+    "title": "wafv2: single_header.name validation rejects valid AWS WAF pseudo-headers containing dots (e.g. httprequest.headers.2.value)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49740",
+    "created_at": "2026-08-28T20:57:52Z",
+    "user": {
+      "login": "guilhermehardt"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/wafv2"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.0\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.14.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_wafv2_web_acl`\n\n### Expected Behavior\n\n`single_header.name` in `byte_match_statement.field_to_match` accepts valid AWS WAF header names containing dots, such as `httprequest.headers.2.value` (a pseudo-header used by CloudFront console-created WAF rules).\n\n### Actual Behavior\n\n`terraform plan` fails with"
+  },
+  {
+    "number": 49739,
+    "title": "aws_ssmquicksetup_configuration_manager produces perpetual diff for omitted empty parameters",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49739",
+    "created_at": "2026-08-28T20:11:34Z",
+    "user": {
+      "login": "edg4rgarci4"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/ssmquicksetup"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.0\nprovider registry.terraform.io/hashicorp/aws v6.62.0\n```\n\nThe same resource schema and update comparison behavior are present in AWS provider v6.43.0.\n\n### Affected Resource\n\n`aws_ssmquicksetup_configuration_manager`\n\n### Expected Behavior\n\nWhen an optional Quick Setup parameter is omitted from configuration and the AWS API returns that parameter as an empty string, a subsequent plan should converge without proposing an update."
+  },
+  {
+    "number": 49731,
+    "title": "aws_glue_catalog_table: Validated ATHENA views have a perpetual diff on view_original_text",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49731",
+    "created_at": "2026-08-28T13:12:27Z",
+    "user": {
+      "login": "cluebbehusen"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/glue"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.16.0 on darwin_arm64, AWS provider version v6.62.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_glue_catalog_table`\n\n### Expected Behavior\n\nAfter successfully applying a validated `ATHENA` Data Catalog view, running `terraform plan` again without changing the configuration should produce an empty plan.\n\n### Actual Behavior\n\nThe initial apply succeeds and Glue reports the view validation as `SUCCESS`. Glue then replaces th"
+  },
+  {
+    "number": 49729,
+    "title": "IPv6 prefix compared as string, not as address for aws_dx_gateway_association",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49729",
+    "created_at": "2026-08-28T09:08:30Z",
+    "user": {
+      "login": "jibey-fs"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/directconnect"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.5.7\non darwin_arm64\n\nYour version of Terraform is out of date! The latest version\nis 1.16.0. You can update by downloading from https://www.terraform.io/downloads.html\n```\n\n### Affected Resource(s) or Data Source(s)\n\naws_dx_gateway_association\n\n### Expected Behavior\n\nresource should accept IPv6 compressed.\n\n### Actual Behavior\n\n```shell\n~ resource \"aws_dx_gateway_association\" \"prod_tgw\" {\n        ~ allowed_prefixes                  "
+  },
+  {
+    "number": 49727,
+    "title": "Regression in v6.62.0: aws_workspaces_directory data source fails with access_endpoint_config",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49727",
+    "created_at": "2026-08-28T01:46:34Z",
+    "user": {
+      "login": "louie-trifonov-apa"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "regression"
+      },
+      {
+        "name": "service/workspaces"
+      },
+      {
+        "name": "prioritized"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.5\non linux_arm64\n\nInitializing provider plugins...\n- Finding latest version of hashicorp/archive...\n- Finding hashicorp/aws versions matching \">= 6.17.0\"...\n- Installing hashicorp/archive v2.8.0...\n- Installed hashicorp/archive v2.8.0 (signed by HashiCorp)\n- Installing hashicorp/aws v6.62.0...\n- Installed hashicorp/aws v6.62.0 (signed by HashiCorp)\n\n\n\n\u2502 Error: setting workspace_access_properties: Invalid address to set: []string{"
+  },
+  {
+    "number": 49726,
+    "title": "aws_elasticache_user: ModifyUser fails with InvalidUserState during concurrent non-tag update surfaces",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49726",
+    "created_at": "2026-08-27T21:34:19Z",
+    "user": {
+      "login": "killakam3084"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/elasticache"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.5\nhashicorp/aws >= v6.52.0 in current validation stream\n```\n\n### Affected Resource(s) or Data Source(s)\n\n### Affected Resource\n\naws_elasticache_serverless_cache\n\n### Region\n\nus-east-1\n\n### Expected Behavior\n\n### Expected\n\nProvider should either retry/backoff on transient InvalidUserState for ModifyUser or document required orchestration semantics for this update path.\n\n### Actual Behavior\n\n### Actual\nModifyUser fails with:\n\nInval"
+  },
+  {
+    "number": 49720,
+    "title": "UpdateDomainConfig ValidationException: serverless_vector_acceleration sent for unsupported OpenSearch versions (< 3.1) during aiml_options update",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49720",
+    "created_at": "2026-08-27T17:26:08Z",
+    "user": {
+      "login": "Vuelos"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/opensearch"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.14.4\nhashicorp/aws v6.62.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\naws_opensearch_domain.aiml_options\n\n### Expected Behavior\n\nThe s3_vectors_engine update is applied successfully. serverless_vector_acceleration is not sent to AWS because the module's dynamic block guards it behind a version check.\n\n### Actual Behavior\n\nThe AWS provider's expandAimlOptions function appears to include ServerlessVectorAcceleration: { Enabled: "
+  },
+  {
+    "number": 49714,
+    "title": "Add Tags for Agentcore Workload Identities to enable governance",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49714",
+    "created_at": "2026-08-27T13:37:05Z",
+    "user": {
+      "login": "DGuhr"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "tags"
+      },
+      {
+        "name": "service/bedrockagentcore"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\n`aws_bedrockagentcore_workload_identity` does not support tags, although the underlying service and SDK do.\n\nThe `CreateWorkloadIdentity` [API and sdk](https://github.com/aws/aws-sdk-go-v2/blob/main/service/bedrockagentcorecontrol/api_op_CreateWorkloadIdentity.go) accepts a [tags map](https://github.com/aws/aws-sdk-go-v2/blob/main/service/bedrockagentcorecontrol/api_op_CreateWorkloadIdentity.go#L40), and bedrock-agentcore-control has TagResource / UntagResource / ListTagsForReso"
+  },
+  {
+    "number": 49707,
+    "title": "Terraform apply silently drops Inbound Federation Cognito Trigger",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49707",
+    "created_at": "2026-08-27T04:50:02Z",
+    "user": {
+      "login": "andrewcameronsims"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/cognitoidp"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.8\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.62.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_cognito_user_pool`\n\n### Expected Behavior\n\nI would expect that if I make a change to an unrelated attribute of a user pool, that the Lambda triggers in that pool are not affected if I choose to manage them outside of the Terraform lifecycle. At the moment I have no other choice for the Inbound Federation"
+  },
+  {
+    "number": 49702,
+    "title": "`aws_batch_compute_environment.compute_resources.instance_type` list order not respected",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49702",
+    "created_at": "2026-08-26T20:56:05Z",
+    "user": {
+      "login": "phmoferring"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/batch"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\n# terraform --version\nTerraform v1.16.0\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.61.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_batch_compute_environment.compute_resources.instance_type`\n\n### Expected Behavior\n\nWhen using the `aws_batch_compute_environment.compute_resources.allocation_strategy  = 'BEST_FIT_PROGRESSIVE_ORDERED'`(or `SPOT_CAPACITY_OPTIMIZED_PRIORITIZED`), the order of the instance types/instan"
+  },
+  {
+    "number": 49695,
+    "title": "aws_elasticache_replication_group: node_group_configuration always sends ReplicaCount, conflicting with replicas_per_node_group",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49695",
+    "created_at": "2026-08-26T10:48:58Z",
+    "user": {
+      "login": "monoglyf"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/elasticache"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform: v1.15.3 on linux_amd64\nAWS Provider: 6.61.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\naws_elasticache_replication_group\n\n### Expected Behavior\n\nFor the `aws_elasticache_replication_group` resource, if `replicas_per_node_group` is set and `node_group_configuration.replica_count` is not set, replica nodes should be created in each node group, as many replica nodes as `replicas_per_node_group` specifies.\n\n### Actual Behavior\n\nIf `"
+  },
+  {
+    "number": 49691,
+    "title": "Lambda IAM resource policies",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49691",
+    "created_at": "2026-08-26T03:00:23Z",
+    "user": {
+      "login": "alexbacchin"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/lambda"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 10
+    },
+    "body": "### Description\n\nAnnouncement: [AWS Lambda functions now support full IAM resource-based policies](https://aws.amazon.com/about-aws/whats-new/2026/08/aws-lambda-full-iam-resource-based-policies)\nExamples: [Working with resource-based policies in Lambda](https://docs.aws.amazon.com/lambda/latest/dg/access-control-resource-based.html)\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_lambda_policy`\n\n### Potential Terraform Configuration\n\n```hcl\nresource \"aws_lambda_policy\" \"example\" {\n  resource"
+  },
+  {
+    "number": 49685,
+    "title": "aws_lakeformation_resource: concurrent RegisterResource calls race on LakeFormationDataAccessPolicyForS3, causing silent partial policy updates",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49685",
+    "created_at": "2026-08-25T21:15:31Z",
+    "user": {
+      "login": "jiananyim"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/lakeformation"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform CLI and Terraform AWS Provider Version\n\n```\nTerraform v1.11.4\n+ provider registry.terraform.io/hashicorp/aws v6.41.0\n```\n\n### Affected Resource(s)\n\n* aws_lakeformation_resource\n\n### Terraform Configuration Files\n\n```hcl\nresource \"aws_lakeformation_resource\" \"test\" {\n  for_each = toset(var.location_arns) # e.g. 8 ARNs\n\n  arn = each.key\n}\n```\n\n### Expected Behavior\n\nEvery registered location ends up in the `LakeFormationDataAccessPolicyForS3` inline policy on the auto-created service"
+  },
+  {
+    "number": 49684,
+    "title": "Support use_latest_service_software_for_blue_green in aws_opensearch_domain",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49684",
+    "created_at": "2026-08-25T19:48:02Z",
+    "user": {
+      "login": "Swathi-Karanth"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/opensearch"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe AWS OpenSearch Service API supports `UseLatestServiceSoftwareForBlueGreen` within `SoftwareUpdateOptions` for a domain. When enabled, the domain automatically uses the latest available service software during a blue/green deployment, rather than the currently pinned service software version.\n\nThis option is not currently exposed by the `aws_opensearch_domain` resource or data source \u2014 only the sibling `auto_software_update_enabled` is. This request adds `software_update_opti"
+  },
+  {
+    "number": 49681,
+    "title": "aws_s3control_multi_region_access_point_routes includes invalid <Region> tag in XML payload",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49681",
+    "created_at": "2026-08-25T18:22:33Z",
+    "user": {
+      "login": "b-edwin-bianchi"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/s3control"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.9.8\n```\n\n### Affected Resource(s) or Data Source(s)\n\nS3 Control (Multi-Region Access Point Routes)\n\n\n\n\n### Expected Behavior\n\nWhen applying the `aws_s3control_multi_region_access_point_routes` resource, the provider should construct an XML payload for the `SubmitMultiRegionAccessPointRoutes` API containing only `<Bucket>` and `<TrafficDialPercentage>` fields within the `<Route>` block, as specified by the upstream AWS S3 Control API"
+  },
+  {
+    "number": 49672,
+    "title": "API Gateway resource policy is silently wiped on body updates after upgrading to v6.48.0 (regression from #48118)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49672",
+    "created_at": "2026-08-25T14:52:49Z",
+    "user": {
+      "login": "elipinska"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "regression"
+      },
+      {
+        "name": "service/apigateway"
+      },
+      {
+        "name": "prioritized"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.9.x (any recent 1.x)\n+ provider registry.terraform.io/hashicorp/aws v6.48.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_api_gateway_rest_api`\n* `aws_api_gateway_rest_api_policy`\n\n### Expected Behavior\n\nWhen a REST API is defined via `body` and its resource policy is managed by a **separate** `aws_api_gateway_rest_api_policy` resource (i.e. the policy is *not* embedded in the OpenAPI `body` via `x-amazon-apigateway-policy"
+  },
+  {
+    "number": 49669,
+    "title": "[Bug]: aws_lakeformation_permissions perpetually replaces role-level grants on a RAM-shared cross-account resource-link table",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49669",
+    "created_at": "2026-08-25T12:28:28Z",
+    "user": {
+      "login": "Vanshul97"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/lakeformation"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Core Version\n1.6.6 (also reproduces under OpenTofu)\n\n### AWS Provider Version\n6.60.0 (also reproduced on 5.100.0 in an older workspace \u2014 not new to this version)\n\n### Affected Resource(s)\naws_lakeformation_permissions\n\n### Expected Behavior\nA `terraform plan` with no config changes and no real permission changes should show no diff for a stable `aws_lakeformation_permissions` grant.\n\n### Actual Behavior\nAn `aws_lakeformation_permissions` resource granting an **IAM-role-level** prin"
+  },
+  {
+    "number": 49665,
+    "title": "Consider removing deprecated attributes from aws_iam_policy_document again.",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49665",
+    "created_at": "2026-08-25T00:00:46Z",
+    "user": {
+      "login": "tmccombs"
+    },
+    "labels": [
+      {
+        "name": "service/iam"
+      },
+      {
+        "name": "technical-debt"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\nSeveral arguments for aws_iam_policy_document were deprecated a long time ago. there was an attempt to remove them in [version 5](https://github.com/hashicorp/terraform-provider-aws/pull/30829), but then that was undone, because (IIUC) state wasn't migrating correctly, see https://github.com/hashicorp/terraform-provider-aws/issues/31637. \n\nHowever, having these attributes still there is giving me warnings, when I try to pass the entire data source to a module variable (see also "
+  },
+  {
+    "number": 49651,
+    "title": "`aws_dynamodb_table`: SSE update with CMK fails with \"Replica not found\"",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49651",
+    "created_at": "2026-08-24T12:39:48Z",
+    "user": {
+      "login": "korxeniowskih"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/dynamodb"
+      },
+      {
+        "name": "eventual-consistency"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nterraformVersion=1.14.0   \n aws = {\n   source  = \"hashicorp/aws\"\n   version = \"~> 6.58.0\"\n```\n\n### Affected Resource(s) or Data Source(s)\n\n`aws_dynamodb_table`\n\n### Expected Behavior\n\nAdding a `server_side_encryption` block with a customer-managed KMS key (`kms_key_arn`) to an existing DynamoDB global table that has replicas managed by separate `aws_dynamodb_table_replica` resources should succeed. The provider should update the table's SSE conf"
+  },
+  {
+    "number": 49650,
+    "title": "cloudfront: support sigv4a signing protocol on aws_cloudfront_origin_access_control (S3 Multi-Region Access Point origins)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49650",
+    "created_at": "2026-08-24T12:16:36Z",
+    "user": {
+      "login": "arditti"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/cloudfront"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nOn 2026-08-20 CloudFront announced native Origin Access Control (OAC) support for Amazon S3 Multi-Region Access Points (MRAP). CloudFront signs requests to an S3-MRAP origin with SigV4a, which removes the need for a Lambda@Edge function that computes the `Authorization` header by hand.\n\nThe only new API surface is a new value in the `OriginAccessControlSigningProtocols` enum: `sigv4a`. MRAP origins keep `OriginAccessControlOriginType = s3`, and `SigningBehavior` is unchanged.\n\n`"
+  },
+  {
+    "number": 49649,
+    "title": "aws_appautoscaling_policy read-after-create no longer retries on empty result (regression since v5.42.0)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49649",
+    "created_at": "2026-08-24T12:13:57Z",
+    "user": {
+      "login": "ryanjclark"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "regression"
+      },
+      {
+        "name": "service/dynamodb"
+      },
+      {
+        "name": "service/appautoscaling"
+      },
+      {
+        "name": "prioritized"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\n% terraform -v\nTerraform v1.13.3\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.40.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_appautoscaling_policy`\n\n### Expected Behavior\n\n`PutScalingPolicy` succeeds so then apply should succeed. The post-create read should retry until propagationTimeout (2 minutes) before erroring, as it did prior to v5.42.0.\n\n### Actual Behavior\n\nPutScalingPolicy succeeds and the policy exist"
+  },
+  {
+    "number": 49647,
+    "title": "aws_backup_logically_air_gapped_vault: Delete does not wait for vault removal",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49647",
+    "created_at": "2026-08-24T10:55:30Z",
+    "user": {
+      "login": "wahlfeld10x"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/backup"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.13.x\n+ provider registry.terraform.io/hashicorp/aws v6.46.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\naws_backup_logically_air_gapped_vault\n\n\n### Expected Behavior\n\nWhen Terraform plans a replacement (destroy-then-create) of an aws_backup_logically_air_gapped_vault, the delete operation should poll DescribeBackupVault until the vault is fully removed (i.e. returns ResourceNotFoundException) before reporting destruction as com"
+  },
+  {
+    "number": 49644,
+    "title": "aws_bedrockagentcore_gateway_target: Add support for HTTP passthrough targets",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49644",
+    "created_at": "2026-08-24T05:58:27Z",
+    "user": {
+      "login": "ari-luokkala"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/bedrockagentcore"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe `aws_bedrockagentcore_gateway_target` resource only supports `agentcore_runtime` under `target_configuration.http`. The AWS API also supports **HTTP passthrough targets** (`http.passthrough`) for routing to:\n\n- **A2A** (Agent-to-Agent) protocol agents\n- **External MCP servers** (direct routing, not aggregated with other MCP targets)\n- **Custom inference endpoints**\n- **Any HTTP endpoint** requiring gateway authentication and policy enforcement\n\nThe current `http` block only "
+  },
+  {
+    "number": 49641,
+    "title": "[Enhancement]: Add auto repair configuration support to aws_ecs_capacity_provider managed instances",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49641",
+    "created_at": "2026-08-23T20:20:22Z",
+    "user": {
+      "login": "dortort"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/ecs"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\nThe `aws_ecs_capacity_provider` resource supports Managed Instances capacity providers via the `managed_instances_provider` block, but does not expose the ECS API's `autoRepairConfiguration`. When enabled, Amazon ECS automatically replaces Managed Instances container instances that reach an `IMPAIRED` health status (based on container instance health checks, including accelerated compute device and daemon health checks); when disabled, ECS still monitors health but does not repl"
+  },
+  {
+    "number": 49640,
+    "title": "Redshift: Support long-term system table retention with Amazon S3 Tables integration",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49640",
+    "created_at": "2026-08-23T12:21:20Z",
+    "user": {
+      "login": "alexjurkiewicz"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/redshift"
+      },
+      {
+        "name": "service/redshiftserverless"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\nAmazon Redshift can now publish system tables to Amazon S3 Tables for retention beyond the 7-day window. The provider has no support for this yet.\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_redshift_logging`\n* `aws_redshiftserverless_namespace`\n\n### References\n\n* https://aws.amazon.com/about-aws/whats-new/2026/08/redshift-long-term-system-table-retention/\n* https://aws.amazon.com/blogs/big-data/long-term-system-tables-retention-in-amazon-redshift-with-amazon-s3-tables/\n"
+  },
+  {
+    "number": 49638,
+    "title": "[Bug]: aws_cognito_identity_pool forces replacement on identity_pool_name change, though the API supports in-place rename",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49638",
+    "created_at": "2026-08-23T04:44:34Z",
+    "user": {
+      "login": "Tianyi2"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/cognitoidentity"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.12.2\non windows_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.61.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n`aws_cognito_identity_pool`\n\n### Expected Behavior\n\nChanging `identity_pool_name` should update the pool in place without force replacement.\n\n### Actual Behavior\n\n`terraform plan` warning on the force replacement. However, I verified with AWS CLI, the in-place rename works and that replacement is unnecessary."
+  },
+  {
+    "number": 49631,
+    "title": "Generated tag tests should run on Terraform v0.12.31",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49631",
+    "created_at": "2026-08-22T00:29:09Z",
+    "user": {
+      "login": "gdavison"
+    },
+    "labels": [
+      {
+        "name": "repository"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\nThe generated tagging tests current require Terraform v1.1.0, because the `variable` block sets `nullable`. Tagging should be tested against all supported Terraform versions, so the `nullable` parameter should be removed, allowing testing back to v0.12.31\n\n### Important Facts and References\n\n_No response_\n\n### Would you like to implement a relevant change?\n\n_No response_"
+  },
+  {
+    "number": 49624,
+    "title": "aws_ecr_lifecycle_policy forces replacement if policy changes",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49624",
+    "created_at": "2026-08-21T22:24:49Z",
+    "user": {
+      "login": "tmccombs"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/ecr"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nOpenTofu v1.12.6\non linux_amd64\n+ provider registry.opentofu.org/hashicorp/archive v2.7.1\n+ provider registry.opentofu.org/hashicorp/aws v6.40.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_ecr_lifecycle_policy`\n\n### Expected Behavior\n\nChanging the `policy` should _update_ the replace the resource. That it is should result in a single PutLifecyclePolicy operation.\n\n### Actual Behavior\n\nChanging the policy instead marks the resource as"
+  },
+  {
+    "number": 49618,
+    "title": "[Bug]: aws_config_aggregate_authorization: migrating region to authorized_aws_region forces replacement \u2014 unlike aws_cloudformation_stack_set_instance",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49618",
+    "created_at": "2026-08-21T13:34:55Z",
+    "user": {
+      "login": "eriketro"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "regression"
+      },
+      {
+        "name": "service/configservice"
+      },
+      {
+        "name": "prioritized"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 4
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.7\non darwin_amd64\n\naws v6.52.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\nresource \"aws_config_aggregate_authorization\"\n\n### Expected Behavior\n\nReplacing the deprecated `region` argument with `authorized_aws_region` should produce an\n   empty plan for a resource that is already under management.\n\n   The migration does not change the underlying AWS object. The resource ID is\n   `account_id:authorized_aws_region`, so it is id"
+  },
+  {
+    "number": 49616,
+    "title": "[Bug]: aws_dms_s3_endpoint: data_format and compression_type are silently dropped for source endpoints (create and read both target-guarded)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49616",
+    "created_at": "2026-08-21T00:15:26Z",
+    "user": {
+      "login": "kushmeja"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/dms"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform Core Version\n\n1.8.3\n\n### AWS Provider Version\n\n6.51.0\n\n### Affected Resource(s)\n\n- `aws_dms_s3_endpoint`\n\n### Expected Behavior\n\n`data_format = \"parquet\"` and `compression_type = \"NONE\"` declared on an `aws_dms_s3_endpoint` with `endpoint_type = \"source\"` are sent in the `CreateEndpoint`/`ModifyEndpoint` request's `S3Settings`, and read back into state, as they are for a target endpoint.\n\n### Actual Behavior\n\nBoth attributes are silently dropped for a source endpoint, in both direc"
+  },
+  {
+    "number": 49609,
+    "title": "aws_mailmanager_ingress_point does not support updating status (ACTIVE/DEACTIVATED)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49609",
+    "created_at": "2026-08-20T20:28:54Z",
+    "user": {
+      "login": "rtorrente"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/mailmanager"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe `aws_mailmanager_ingress_point` resource does not allow updating the ingress point status after creation. The status attribute is exposed as computed only, which means there is no way to activate or deactivate an ingress point through Terraform without destroying and recreating the resource. (With endpoint and username change)\n\nThe underlying AWS API for Mail Manager (UpdateIngressPoint) accepts a StatusToUpdate parameter that allows setting the status to ACTIVE or DEACTIVAT"
+  },
+  {
+    "number": 49600,
+    "title": "internal/framework/types: Add functionality to detect \"all null\" model structs",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49600",
+    "created_at": "2026-08-20T13:43:40Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "technical-debt"
+      },
+      {
+        "name": "autoflex"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "For expediency, 3b45709f25bd7260a618ed4c96a98d327c71a595 uses very point-in-time model-specific code to check for an empty structure being returned from an AWS API. We should add generic functionality (similar to `NullOutObjectPtrFields()` in `internal/framework/types/objectof.go`) to check for \"all null\" model structs."
+  },
+  {
+    "number": 49597,
+    "title": "Update Default XRay Sampling Rule",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49597",
+    "created_at": "2026-08-20T08:24:23Z",
+    "user": {
+      "login": "gquintana"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/xray"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nIt's possible to modify XRay Default Sampling Rule with Terraform\n```\n\u2502 Error: updating XRay Sampling Rule (Default): operation error XRay: UpdateSamplingRule, https response error StatusCode: 400, RequestID: 4eaab5db-96b5-4d01-8a21-6b2848d1e5a7, InvalidRequestException: Invalid update request for default sampling rule\n\u2502 \n\u2502   with aws_xray_sampling_rule.default,\n\u2502   on xray.tf line 41, in resource \"aws_xray_sampling_rule\" \"default\":\n\u2502   41: resource \"aws_xray_sampling_rule\" \"def"
+  },
+  {
+    "number": 49595,
+    "title": "aws_cloudfront_anycast_ip_list: add support for ipam_cidr_configs (BYOIP via IPAM pools)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49595",
+    "created_at": "2026-08-20T06:20:47Z",
+    "user": {
+      "login": "ionionascu"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/cloudfront"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\n`aws_cloudfront_anycast_ip_list` currently supports `name`, `ip_count`, `ip_address_type` and `tags`. The underlying `CreateAnycastIpList` API also accepts an `IpamCidrConfigs` parameter, an array of `IpamCidrConfig` objects (`Cidr`, `IpamPoolArn`, and optionally `AnycastIp`), which is not exposed by this resource.\n\nWithout it, the resource can only allocate Anycast static IPs from the AWS-owned pool. Customers who have brought their own address space into Amazon VPC IPAM cannot"
+  },
+  {
+    "number": 49594,
+    "title": "[Bug]: aws_bedrockagentcore_harness: service-populated memory retrieval_config makes every apply fail with \"inconsistent result after apply\"",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49594",
+    "created_at": "2026-08-20T04:06:35Z",
+    "user": {
+      "login": "kossy-kinto"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/bedrockagentcore"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.14.3\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.60.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_bedrockagentcore_harness`\n\n### Expected Behavior\n\nWhen `memory.agentcore_memory_configuration` only references an existing AgentCore Memory by ARN and declares no `retrieval_config` block, apply should succeed and the following plan should be empty.\n\n### Actual Behavior\n\nEvery apply that creates or repl"
+  },
+  {
+    "number": 49593,
+    "title": "[Enhancement]: Plan-time validation when aws_db_instance.blue_green_update is enabled alongside sibling replicas (follow-up to #33702)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49593",
+    "created_at": "2026-08-20T03:14:35Z",
+    "user": {
+      "login": "ksudana"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/rds"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nFollow-up to #33702, which was closed with the rationale that cross-resource state coordination isn't possible in the current Terraform resource model. That closure is reasonable for the coordination ask itself.\n\nThis request is narrower: **detect the unsafe configuration at plan time and emit a diagnostic**, so users are not silently placed into a broken post-apply state.\n\n### The failure mode\n\nWhen `aws_db_instance.<primary>` has `blue_green_update { enabled = true }` and one "
+  },
+  {
+    "number": 49577,
+    "title": "resource/aws_billing_view - source_views continouos drift",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49577",
+    "created_at": "2026-08-19T11:28:42Z",
+    "user": {
+      "login": "leonblueconic"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/billing"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\n$ terraform --version\nTerraform v1.15.8\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.60.0\n+ provider registry.terraform.io/hashicorp/tfe v0.80.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\nWe have an combined billing view in of our payment accounts combining multiple billing views from different accounts\n\n```hcl\nresource \"aws_billing_view\" \"combined\" {\n  provider = aws.payer1\n\n  name        = \"Combined-View\"\n  descriptio"
+  },
+  {
+    "number": 49575,
+    "title": "route53domains_domain extra_param occasional perpetual diff",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49575",
+    "created_at": "2026-08-19T09:48:20Z",
+    "user": {
+      "login": "dpiddock"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/route53domains"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.8\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.60.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_route53domains_domain`\n\n### Expected Behavior\n\n`No changes` on every plan.\n\n### Actual Behavior\n\nRandom diffs simply because the ordering of the `extra_params` list is different between AWS API result and the terraform source.\n\n<details open>\n<summary>Click to expand diff</summary>\n\n```\n  # aws_route53d"
+  },
+  {
+    "number": 49572,
+    "title": "`aws_cloudfront_function` tags-only change fails with `PublishFunction` 412 `PreconditionFailed`",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49572",
+    "created_at": "2026-08-19T02:50:49Z",
+    "user": {
+      "login": "defdanmoz"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/cloudfront"
+      },
+      {
+        "name": "needs-triage"
+      },
+      {
+        "name": "tags"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.8\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.60.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_cloudfront_function`\n\n### Expected Behavior\n\nA tags-only change to an existing `aws_cloudfront_function` applies successfully. \n\n(tags are not part of the function configuration, so publishing should not be required)\n\n### Actual Behavior\n\nThe apply fails at `PublishFunction` with HTTP 412.\n\nNote that thi"
+  },
+  {
+    "number": 49569,
+    "title": "aws_bedrock_model_invocation_logging_configuration should not show a perpetual diff for `logging_config.video_data_delivery_enabled` in unsupported regions",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49569",
+    "created_at": "2026-08-19T00:23:31Z",
+    "user": {
+      "login": "easterbonbon"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/bedrock"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nOpenTofu v1.10.1\non linux_amd64\n+ provider registry.opentofu.org/datadog/datadog v3.61.0\n+ provider registry.opentofu.org/hashicorp/aws v6.60.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_bedrock_model_invocation_logging_configuration`\n\n### Expected Behavior\n\nFor regions that do not support the video modality and thus, that attribute (`videoDataDeliveryEnabled`) is absent when calling `aws bedrock get-model-invocation-logging-configu"
+  },
+  {
+    "number": 49568,
+    "title": "AWS Security Hub monitors Microsoft Azure resources",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49568",
+    "created_at": "2026-08-18T20:11:21Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "upstream"
+      },
+      {
+        "name": "service/securityhub"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "> AWS Security Hub extends unified security management to Microsoft Azure\n\n* [Announcement](https://aws.amazon.com/about-aws/whats-new/2026/06/aws-security-hub-supports-monitoring-microsoft-azure/)"
+  },
+  {
+    "number": 49565,
+    "title": "aws_amplify_app: access_token validation still capped at 255 chars, blocking longer GitHub App tokens",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49565",
+    "created_at": "2026-08-18T19:28:27Z",
+    "user": {
+      "login": "skellaway"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/amplify"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Terraform Core Version\n\n1.9.x (not core-specific)\n\n### AWS Provider Version\n\nLatest (validation unchanged on `main` as of writing)\n\n### Affected Resource(s)\n\n`aws_amplify_app`\n\n### Expected Behavior\n\nThe `access_token` argument on `aws_amplify_app` should accept any token value that AWS's Amplify `CreateApp`/`UpdateApp` API currently accepts.\n\n### Actual Behavior\n\n`internal/service/amplify/app.go` validates `access_token` with:\n\n```go\n\"access_token\": {\n    Type:         schema.TypeString,\n  "
+  },
+  {
+    "number": 49562,
+    "title": "\ud83d\udc1d Hive Advisory Report",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49562",
+    "created_at": "2026-08-18T17:07:20Z",
+    "user": {
+      "login": "justinretzolk"
+    },
+    "labels": [],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "This issue collects advisory findings from Hive agents.\n\nAt lower ACMM levels, some agents work in advisory mode \u2014 they analyze code and post findings here but do not create issues or PRs. At higher levels, designated agents (e.g. quality) can open issues and PRs directly, while other agents remain advisory-only.\n\nThe governor posts periodic digest comments summarizing what advisory agents found.\n\n**Do not close this issue.** It is a living document.\n\n\u2014 hive: agent=governor"
+  },
+  {
+    "number": 49558,
+    "title": "aws_elasticsearch_domain update completes before AWS finishes applying the change (data node count reduction)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49558",
+    "created_at": "2026-08-18T15:08:22Z",
+    "user": {
+      "login": "roshchha"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/elasticsearch"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform Version:\n  Terraform v1.5.3 \n\nAWS Provider Version:\n  4.67.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\naws_elasticsearch_domain\n(possibly also aws_opensearch_domain, which shares the same waiter pattern \u2014 not tested)\n\n\n### Expected Behavior\n\nterraform apply should not report success until AWS has actually finished applying the domain change.\n\n### Actual Behavior\n\n When reducing cluster_config.instance_count (data node count), te"
+  },
+  {
+    "number": 49548,
+    "title": "[New Service]: AWS Account Access",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49548",
+    "created_at": "2026-08-18T11:42:34Z",
+    "user": {
+      "login": "catlike"
+    },
+    "labels": [
+      {
+        "name": "new-service"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 9
+    },
+    "body": "### What new functionality are you requesting?\n\nSupport for the AWS Account Access service (`accountaccess`), including:\n\n- Resource: `aws_accountaccess_application`\n- List Resource: `aws_accountaccess_application`\n- Resource: `aws_accountaccess_entitlement`\n- List Resource: `aws_accountaccess_entitlement`\n- Data Source: `aws_accountaccess_application`\n- Data Source: `aws_accountaccess_entitlements`\n\n### Description\n\nAWS Account Access integrates AWS IAM Identity Center with IAM roles in AWS acc"
+  },
+  {
+    "number": 49544,
+    "title": "[Bug]: aws_db_proxy auth.client_password_auth_type change not detected in plan",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49544",
+    "created_at": "2026-08-18T05:02:35Z",
+    "user": {
+      "login": "sogaoh"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/rds"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "## Description\n\nWhen changing `client_password_auth_type` in the `auth` block of `aws_db_proxy`\nfrom `MYSQL_NATIVE_PASSWORD` to `MYSQL_CACHING_SHA2_PASSWORD`,\n`terraform plan` reports **\"No changes\"** and the change is never applied to AWS.\n\n## Terraform Configuration\n\n```hcl\nresource \"aws_db_proxy\" \"this\" {\n  name           = \"example-proxy\"\n  engine_family  = \"MYSQL\"\n  ...\n\n  auth {\n    auth_scheme               = \"SECRETS\"\n    client_password_auth_type = \"MYSQL_CACHING_SHA2_PASSWORD\"  # chang"
+  },
+  {
+    "number": 49543,
+    "title": "[New Resource]: aws_bedrock_project (Amazon Bedrock Mantle project)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49543",
+    "created_at": "2026-08-18T04:44:21Z",
+    "user": {
+      "login": "iwashitahga"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/bedrock"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 6
+    },
+    "body": "### What new functionality are you requesting?\n\n`aws_bedrock_project` \u2014 Amazon Bedrock project (the resource created via the Projects API on the `bedrock-mantle` endpoint).\n\nSplitting this out of #48381 as suggested there, so it can be tracked independently of the Agent Registry half (which is blocked on the preview\u2192GA changes described in that issue).\n\n### Description\n\nAmazon Bedrock projects are the only mechanism for per-workload isolation, tagging and cost allocation on the `bedrock-mantle` "
+  },
+  {
+    "number": 49542,
+    "title": "New Service: Amazon AppStream 2.0 Cost Usage",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49542",
+    "created_at": "2026-08-18T03:57:08Z",
+    "user": {
+      "login": "tinhtq"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/appstream"
+      },
+      {
+        "name": "new-service"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 7
+    },
+    "body": "### What new functionality are you requesting?\n\n* `aws_appstream_usage_report_subscription` (cost/usage reporting)\n\n### Description\n\nAmazon AppStream 2.0 provides cost and usage reports that can be enabled via the AWS Console, but there is currently no Terraform support for managing this configuration. This request is to add support for enabling and managing AppStream 2.0 usage report subscriptions, which publish usage data to an Amazon S3 bucket and allow teams to track costs and resource consu"
+  },
+  {
+    "number": 49541,
+    "title": "list resource/aws_iam_role: support `path_prefix` argument (ListRoles PathPrefix)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49541",
+    "created_at": "2026-08-17T23:46:33Z",
+    "user": {
+      "login": "rroctavian"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/iam"
+      },
+      {
+        "name": "list-resource"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe `aws_iam_role` list resource added in #44129 currently takes no narrowing arguments, so every `terraform query` returns all roles in the account.\n\nThe underlying `ListRoles` API supports the `PathPrefix` parameter. It would be great if the list resource accepted `path_prefix` and passed it through, the same way the `aws_iam_user` and `aws_iam_policy` list resources already do.\n\nMy use case is query-driven import of existing roles. Accounts accumulate a lot of roles over time"
+  },
+  {
+    "number": 49539,
+    "title": "list resource/aws_eip: support `filter` argument (DescribeAddresses Filters)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49539",
+    "created_at": "2026-08-17T23:34:45Z",
+    "user": {
+      "login": "rroctavian"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/ec2"
+      },
+      {
+        "name": "list-resource"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe `aws_eip` list resource added in #47557 currently only accepts `region` in its `config` block, so every `terraform query` returns all Elastic IPs in the region.\n\nThe underlying `DescribeAddresses` API supports the standard `Filters` parameter, including `tag:<key>` filters. It would be great if the list resource accepted `filter` blocks and passed them through, the same way the `aws_instance`, `aws_vpc` and `aws_security_group` list resources already do.\n\nMy use case is quer"
+  },
+  {
+    "number": 49536,
+    "title": "Adding existing phone number to pool gives INVALID_PARAMETER",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49536",
+    "created_at": "2026-08-17T22:39:01Z",
+    "user": {
+      "login": "ngfeldman"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/pinpointsmsvoicev2"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.14.9\non linux_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.60.0\n\nYour version of Terraform is out of date! The latest version\nis 1.15.8. You can update by downloading from https://developer.hashicorp.com/terraform/install\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_pinpointsmsvoicev2_pool`\n* `aws_pinpointsmsvoicev2_phone_number`\n\n### Expected Behavior\n\nModifying a `aws_pinpointsmsvoicev2_pool` to add the ARN o"
+  },
+  {
+    "number": 49531,
+    "title": "[Bug]: aws_lb dual-stack NLB with both allocation_id and ipv6_address never reads ipv6_address back, causing a permanent subnet_mapping diff",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49531",
+    "created_at": "2026-08-17T21:08:22Z",
+    "user": {
+      "login": "bryanhiestand"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/elbv2"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.5.7\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v5.68.0\n\n\nThe offending code is byte-identical in `v6.60.0` (latest at time of filing) and\non `main`, so this is not resolved by upgrading.\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_lb`\n\n### Expected Behavior\n\nA dual-stack Network Load Balancer whose `subnet_mapping` blocks pin both an\n`allocation_id` (an EIP) and an `ipv6_address` should converge. Afte"
+  },
+  {
+    "number": 49522,
+    "title": "aws_msk_cluster: Add support for MSK authorizer logs",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49522",
+    "created_at": "2026-08-17T07:23:27Z",
+    "user": {
+      "login": "miguellobato84"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/kafka"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "## Description\n\nAdd support for Amazon MSK authorizer-log delivery in `aws_msk_cluster.logging_info`.\n\nAWS MSK authorizer logs capture authorization decisions and can be delivered to CloudWatch Logs, Amazon S3, or Kinesis Data Firehose.\n\nThe Terraform AWS provider currently supports only `logging_info.broker_logs`.\n\n## Affected Resource\n\n* `aws_msk_cluster`\n\n## Use Case\n\nAuthorizer logs are required to monitor client access patterns and troubleshoot Kafka/IAM authorization failures. Terraform su"
+  },
+  {
+    "number": 49517,
+    "title": "aws_vpc_block_public_access_options: create fails with \"unexpected state 'default-state'\" on first-ever enablement, though the API call succeeded",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49517",
+    "created_at": "2026-08-16T22:55:39Z",
+    "user": {
+      "login": "MichelFloyd"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/vpc"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\nTerraform (OpenTofu) 1.10.9, AWS provider v5.100.0. The relevant code is unchanged on `main` as of 2026-08-16.\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_vpc_block_public_access_options`\n\n### Expected Behavior\n\nCreating `aws_vpc_block_public_access_options` in an account/region that has never configured VPC Block Public Access should succeed. `ModifyVpcBlockPublicAccessOptions` is asynchronous, so the resource should wait through the pre-update `d"
+  },
+  {
+    "number": 49511,
+    "title": "aws_ecs_express_gateway_service: scaling_target.auto_scaling_metric / auto_scaling_target_value cause \"Provider produced inconsistent result after apply\"",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49511",
+    "created_at": "2026-08-16T10:49:38Z",
+    "user": {
+      "login": "yuya0408"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/ecs"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.8\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.60.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* ` aws_ecs_express_gateway_service `\n\n### Expected Behavior\n\nWhen `scaling_target` is set with only `min_task_count` and `max_task_count`\n(leaving `auto_scaling_metric` and `auto_scaling_target_value` unset\uff09\uff0c\n`terraform apply` should succeed. Since these two arguments are optional and\nAWS assigns server-side d"
+  },
+  {
+    "number": 49505,
+    "title": "[Enhancement]: Support engine_mode and use_case arguments in aws_opensearch_domain",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49505",
+    "created_at": "2026-08-15T08:12:04Z",
+    "user": {
+      "login": "Bukhtawar"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/opensearch"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\nAmazon OpenSearch Service supports two domain-creation parameters \u2014 `EngineMode` (`GENERAL | OPTIMIZED`) and `UseCase` (`SEARCH | VECTOR | OBSERVABILITY | MIXED`) \u2014 via the `CreateDomain` API and the `AWS::OpenSearchService::Domain` CloudFormation resource. The `aws_opensearch_domain` resource does not currently expose either argument, so domains using the OPTIMIZED engine mode (and explicit use-case tuning) cannot be provisioned with Terraform.\n\nI confirmed the arguments are ab"
+  },
+  {
+    "number": 49500,
+    "title": "[New Data Source]: aws_vpclattice_resource_configuration",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49500",
+    "created_at": "2026-08-14T18:07:28Z",
+    "user": {
+      "login": "defiant214"
+    },
+    "labels": [
+      {
+        "name": "new-data-source"
+      },
+      {
+        "name": "service/vpclattice"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### What new functionality are you requesting?\n\naws_vpclattice_resource_configuration\n\n### Description\n\nThe AWS provider currently supports managing VPC Lattice resource configurations\nvia the `aws_vpclattice_resource_configuration` resource, but there is no\ncorresponding data source to look up an existing resource configuration.\n\nThis is a gap when resource configurations are created in one Terraform\nworkspace (or account, via AWS RAM sharing) and consumed in another \u2014 for\nexample, creating a V"
+  },
+  {
+    "number": 49499,
+    "title": "Add write-only OIDC client secret support to aws_lb_listener and aws_lb_listener_rule",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49499",
+    "created_at": "2026-08-14T16:53:47Z",
+    "user": {
+      "login": "ayatk"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/elbv2"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe `authenticate_oidc` block on `aws_lb_listener` and `aws_lb_listener_rule` requires `client_secret`. Although the argument is marked as sensitive, its value is still stored in Terraform state because it is not write-only.\n\nThis also means that `client_secret` cannot accept an ephemeral value. For example, the AWS provider supports retrieving a secret with `ephemeral \"aws_secretsmanager_secret_version\"`, but that value cannot be passed to an ALB OIDC action without persisting "
+  },
+  {
+    "number": 49494,
+    "title": "[New Resource]: Support OpenSearch application capabilities",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49494",
+    "created_at": "2026-08-14T12:41:23Z",
+    "user": {
+      "login": "gadupushailaja"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/opensearch"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe AWS provider supports OpenSearch UI applications through `aws_opensearch_application`, but it does not currently provide a Terraform resource for managing application capabilities.\n\nAmazon OpenSearch Service exposes dedicated APIs to register, read, and deregister capabilities. One current use case is enabling the OpenSearch UI AI Assistant, chatbot, and agentic investigation through the `ai-capability` capability.\n\nWithout native provider support, users must call the AWS AP"
+  },
+  {
+    "number": 49492,
+    "title": "Technical debt: `agentregistrycontrol` API client FIPS endpoints",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49492",
+    "created_at": "2026-08-14T12:17:22Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "technical-debt"
+      },
+      {
+        "name": "fips"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "Relates https://github.com/hashicorp/terraform-provider-aws/pull/49483.\nEndpoint resolution for FIPS endpoints is currently disabled for the `agentregistrycontrol` service API as the default generated code does not compile. Track FIPS enablement of this service and regenerate when available."
+  },
+  {
+    "number": 49491,
+    "title": "Support of timeout option for aws_kms_replica_key",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49491",
+    "created_at": "2026-08-14T08:22:51Z",
+    "user": {
+      "login": "bolaji-osinuga-ba"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/kms"
+      },
+      {
+        "name": "timeouts"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\nThe `aws_kms_key` resource supports configurable timeout options, but `aws_kms_replica_key` appears to have a hard-coded 2-minute timeout.\n\nAWS documents KMS multi-Region key replication as an asynchronous operation, so there is no guarantee that a replica will transition to Enabled within 2 minutes. We have observed intermittent cases where replica creation takes longer than this.\n\nThe impact of this timeout is particularly problematic. When the provider times out while the rep"
+  },
+  {
+    "number": 49488,
+    "title": "[Bug]: aws_bedrockagent_agent apply fails with \"invalid result object after apply\" when no tracked attribute changes (prepared_at left unknown)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49488",
+    "created_at": "2026-08-14T05:10:31Z",
+    "user": {
+      "login": "ns-ccandelario"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/bedrockagent"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.14.4\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.46.0\n\nReproduced on v6.46.0. Source inspection confirms the defect is unchanged in v6.60.0, the latest release at time of filing \u2014 the prepared_at schema block and the Update method are identical between the two tags.\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_bedrockagent_agent`\n\n### Expected Behavior\n\nRunning terraform apply twice in a row, with no"
+  },
+  {
+    "number": 49474,
+    "title": "[Tech Debt]: Use Raw accessors instead of Get/GetOk in identity interceptors",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49474",
+    "created_at": "2026-08-13T17:12:01Z",
+    "user": {
+      "login": "YakDriver"
+    },
+    "labels": [
+      {
+        "name": "technical-debt"
+      },
+      {
+        "name": "resource-identity"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Summary\n\nFollow-up / technical-debt tracking item coming out of the v6.59.0 Resource Identity regression (#49448).\n\nThe SDKv2 identity interceptors detect \"is this identity attribute set / is the identity fully null\" using the `helper/schema` `Get`/`GetOk` accessors. These accessors are lossy for this purpose:\n\n- `Get` returns a typed zero value for unset attributes, so comparing against `\"\"` (the original `identityIsFullyNull` implementation) is only correct for `string` attributes and sile"
+  },
+  {
+    "number": 49472,
+    "title": "[Bug]: aws_cloudwatch_dashboard: intermittent create failure \"While finding, couldn't find resource\" (read-after-create eventual consistency, no retry)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49472",
+    "created_at": "2026-08-13T15:51:13Z",
+    "user": {
+      "login": "akuzminsky"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/cloudwatch"
+      },
+      {
+        "name": "eventual-consistency"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\nTerraform v1.15.8\nAWS Provider v6.59.0 (the affected code path is unchanged since at least v6.50.0)\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_cloudwatch_dashboard`\n\n### Expected Behavior\n\n`terraform apply` creating an `aws_cloudwatch_dashboard` should succeed. If the `GetDashboard` read\nimmediately after `PutDashboard` returns `ResourceNotFound` (CloudWatch read-after-write eventual\nconsistency), the provider should retry the read for a new resou"
+  },
+  {
+    "number": 49468,
+    "title": "aws_dms_endpoint: oracle_settings.trim_space_in_char silently ignored for source endpoints (missing from expandOracleSettings)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49468",
+    "created_at": "2026-08-13T14:58:53Z",
+    "user": {
+      "login": "igor-yurchenko-tkd"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/dms"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.8.5\n+ provider registry.terraform.io/hashicorp/aws v6.59.0\n```\n\nAlso confirmed present (unfixed) on `main` as of 2026-08-13.\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_dms_endpoint` (`oracle_settings` block, `endpoint_type = \"source\"`)\n\n### Expected Behavior\n\nWhen `oracle_settings.trim_space_in_char` is set on an `aws_dms_endpoint` with `endpoint_type = \"source\"` and `engine_name = \"oracle\"`, Terraform should send `TrimSpac"
+  },
+  {
+    "number": 49466,
+    "title": "Elasticache updates with invalid engine/parameter groups show passing plans but apply failures.",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49466",
+    "created_at": "2026-08-13T14:28:41Z",
+    "user": {
+      "login": "lpmi-13"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/elasticache"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nCurrently, when planning an update against an elasticache OSS Redis cluster, it's possible to see a passing plan with the following configuration:\n\n```\n    resource \"aws_elasticache_replication_group\" \"this\" {\n        engine_version              = \"7.4\"\n    }\n```\n\nThe plan outputs this, and shows it as passing:\n\n```\n  ~ resource \"aws_elasticache_replication_group\" \"this\" {\n      ~ engine_version              = \"6.x\" -> \"7.4\"\n        id                          = \"cluster-group-i"
+  },
+  {
+    "number": 49464,
+    "title": "ExaDB-XS for Oracle AI Database@AWS",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49464",
+    "created_at": "2026-08-13T13:32:35Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/odb"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "> Today, we are announcing the general availability of Oracle Exadata Database Service on Exascale Infrastructure (ExaDB-XS) for Oracle AI Database@AWS.\n\n* [Blog post](https://aws.amazon.com/blogs/database/introducing-oracle-exadata-on-exascale-for-oracle-ai-databaseaws/)\n\nRequires AWS SDK for Go v2 [Release 2026-08-12](https://github.com/aws/aws-sdk-go-v2/commit/9db77598aca72347d054680dca364d9ab47f8f05)."
+  },
+  {
+    "number": 49463,
+    "title": "Issue rebound #40724 - LakeFormation permissions for S3Tables Catalog",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49463",
+    "created_at": "2026-08-13T12:43:07Z",
+    "user": {
+      "login": "amal-qi"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/lakeformation"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nOpenTofu v1.12.5\non darwin_arm64\n\nprovider[registry.opentofu.org/hashicorp/aws] 6.56.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n```hcl\nresource \"aws_lakeformation_permissions\" \"snowflake_intgr_lf_permissions\" {\n  principal   = aws_iam_role.snowflake_catalog_integration[0].arn\n  permissions = [\"SUPER_USER\"]\n  catalog_resource = true\n  catalog_id = \"${var.aws_account_id}:s3tablescatalog/${aws_s3tables_table_bucket.ddx_lakehouse_tables.name"
+  },
+  {
+    "number": 49454,
+    "title": "[Enhancement]: Support encryption_configuration in aws_ssoadmin_instance",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49454",
+    "created_at": "2026-08-13T06:07:13Z",
+    "user": {
+      "login": "posquit0"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/ssoadmin"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nAWS IAM Identity Center now supports configuring encryption at rest for an instance through the `UpdateInstance` API's `EncryptionConfiguration` parameter.\n\nPlease support an `encryption_configuration` block on the proposed `aws_ssoadmin_instance` resource tracked in #45878. This should allow both supported key types:\n\n* `CUSTOMER_MANAGED_KEY`, with a required KMS key ARN\n* `AWS_OWNED_KMS_KEY`, without a KMS key ARN\n\nThis is also required when an IAM Identity Center instance is "
+  },
+  {
+    "number": 49453,
+    "title": "[Bug]: aws_lakeformation_permissions perpetual destroy+recreate \u2014 ALL grant on table not round-tripped by ListPermissions",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49453",
+    "created_at": "2026-08-13T05:35:49Z",
+    "user": {
+      "login": "Vanshul97"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/lakeformation"
+      }
+    ],
+    "comments": 4,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Description\n\n`aws_lakeformation_permissions` resources that grant `permissions = [\"ALL\"]` (or `SELECT`) on a Glue **table** show **destroy + recreate on every `terraform plan`**, with no configuration change. Each diff removes `\"ALL\"` from `permissions` (which is ForceNew) and marks `id` / `permissions_with_grant_option` as \"known after apply\". The recreate is net-zero (the same grant is restored), but it is noisy at scale and \u2014 because `permissions` forces replacement \u2014 each apply briefly *"
+  },
+  {
+    "number": 49445,
+    "title": "pinpointsmsvoicev2: data sources and resource identity/list coverage",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49445",
+    "created_at": "2026-08-12T20:58:06Z",
+    "user": {
+      "login": "YakDriver"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new-data-source"
+      },
+      {
+        "name": "resource-identity"
+      },
+      {
+        "name": "new-list-resource"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "Track data source and resource identity/list coverage for `pinpointsmsvoicev2`.\n\n### Top priority\n\nData sources:\n\n- [ ] `aws_pinpointsmsvoicev2_phone_number`\n- [ ] `aws_pinpointsmsvoicev2_pool`\n- [ ] `aws_pinpointsmsvoicev2_sender_id`\n\nResource identity + list:\n\n- [ ] `aws_pinpointsmsvoicev2_phone_number`\n- [ ] `aws_pinpointsmsvoicev2_configuration_set`\n\n### P2\n\nData sources:\n\n- [ ] `aws_pinpointsmsvoicev2_configuration_set`\n- [ ] `aws_pinpointsmsvoicev2_opt_out_list`\n\nResource identity + list:\n"
+  },
+  {
+    "number": 49444,
+    "title": "[New Resource]: aws_pinpointsmsvoicev2_rcs_agent",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49444",
+    "created_at": "2026-08-12T20:50:48Z",
+    "user": {
+      "login": "YakDriver"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/pinpointsmsvoicev2"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nAWS End User Messaging SMS/Voice v2 (`pinpointsmsvoicev2`) supports **RCS** (Rich Communication Services) business messaging agents. The provider has no coverage for RCS agents today. Add a resource to manage them.\n\nRCS operations ship in the existing `pinpointsmsvoicev2` API client (verified in SDK v1.33.0), so this belongs in the existing service package \u2014 no new service needed.\n\n### Requested Resource(s) and/or Data Source(s)\n\n- `aws_pinpointsmsvoicev2_rcs_agent` \u2014 `CreateRcs"
+  },
+  {
+    "number": 49442,
+    "title": "[New Service]: AWS End User Messaging Social (socialmessaging / WhatsApp)",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49442",
+    "created_at": "2026-08-12T20:37:30Z",
+    "user": {
+      "login": "YakDriver"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "new-service"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nAdd a new service package for AWS End User Messaging Social (SDK/API `socialmessaging`, endpoint `social-messaging`), which integrates WhatsApp Business messaging. It is a distinct AWS SDK for Go v2 client (`github.com/aws/aws-sdk-go-v2/service/socialmessaging`), separate from `pinpoint`/`pinpointsmsvoicev2`.\n\nThis issue tracks **addition of the service client and scaffolding**. Individual resources, data sources, and actions are tracked in their own issues; the table below maps"
+  },
+  {
+    "number": 49441,
+    "title": "AWS Elastic Disaster Recovery Service - aws_drs_launch_configuration_template",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49441",
+    "created_at": "2026-08-12T19:35:07Z",
+    "user": {
+      "login": "jbrockopp"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/drs"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 12
+    },
+    "body": "### What new functionality are you requesting?\n\n* Resource: `aws_drs_launch_configuration_template`\n\n### Description\n\nxref:\n\n* https://github.com/hashicorp/terraform-provider-aws/issues/21865\n\nCurrently, we're onboarding several AWS accounts that use multiple regions to AWS Elastic Disaster Recovery Service (DRS):\n\n* https://docs.aws.amazon.com/drs/latest/userguide/getting-started-initializing.html\n\nTo be concise, after creating the required IAM roles, you run `aws drs initialize-service` to ful"
+  },
+  {
+    "number": 49439,
+    "title": "Terraform Attempted to Process a Resource aws_route53_zone Without Configuration",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49439",
+    "created_at": "2026-08-12T19:09:22Z",
+    "user": {
+      "login": "TrebuszeQ"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "waiting-response"
+      },
+      {
+        "name": "service/route53domains"
+      },
+      {
+        "name": "needs-triage"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.8\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.57.1\n```\n\n### Affected Resource(s) or Data Source(s)\n\nmain.tf:\n\n```hcl\nresource \"aws_route53domains_registered_domain\" \"some-domain\" {\n    domain_name = local.env.domain\n}\n```\n\n### Expected Behavior\n\nI guess expected behavior is to not process the resource.\n\n### Actual Behavior\n\n```shell\nError: Resource has no configuration\n\u2502 \n\u2502 Terraform attempted to process a re"
+  },
+  {
+    "number": 49426,
+    "title": "New Data Source: `aws_cognito_user`",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49426",
+    "created_at": "2026-08-12T16:28:09Z",
+    "user": {
+      "login": "atimofeev"
+    },
+    "labels": [
+      {
+        "name": "new-data-source"
+      },
+      {
+        "name": "service/cognitoidp"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 6
+    },
+    "body": "# New Data Source: `aws_cognito_user`\n\n### What new functionality are you requesting?\n\nData source `aws_cognito_user`\n\n### Description\n\nAdd a data source for retrieving an existing Amazon Cognito user by `user_pool_id` and either `username` or exact `email`.\n\nThis would allow configurations to read an existing user's attributes and identifiers without importing and managing the user through the `aws_cognito_user` resource. Managing a read-only dependency as a resource introduces ownership semant"
+  },
+  {
+    "number": 49410,
+    "title": "[Bug]: aws_ce_cost_category drops default_value on any in-place update, requiring a second apply to converge",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49410",
+    "created_at": "2026-08-12T08:07:30Z",
+    "user": {
+      "login": "christophefund"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/ce"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nOpenTofu v1.11.1\non darwin_arm64\n+ provider registry.opentofu.org/hashicorp/aws v6.56.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\naws_ce_cost_category\n\n### Expected Behavior\n\nA single apply in fully reconciles the resource, and a subsequent plan shows no changes. `default_value` should remain set because it is unchanged in the config.\n\n### Actual Behavior\n\nAfter the first apply, `default_value` is removed from the resource (in AWS and in "
+  },
+  {
+    "number": 49407,
+    "title": "[Bug]: aws_glue_trigger EVENT type \u2014 enabled cannot converge; update always fails with StartTrigger/StopTrigger 400",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49407",
+    "created_at": "2026-08-12T01:56:25Z",
+    "user": {
+      "login": "7Mudit"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/glue"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\nThe defect is present in current `main` by inspection \u2014 verified at commit [`0d315cd`](https://github.com/hashicorp/terraform-provider-aws/blob/0d315cdfb087a65e14308f6005d260141ffd6e1f/internal/service/glue/trigger.go), and `internal/service/glue/trigger.go` has not changed since `e1383d8` (2026-05-25), i.e. it survived the AWS SDK v2 migration.\n\nObserved in production through `crossplane-contrib/provider-upjet-aws` v1.23.15, which vendors this provider's "
+  },
+  {
+    "number": 49393,
+    "title": "[Enhancement]: Support Amazon Timestream for InfluxDB backup and restore",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49393",
+    "created_at": "2026-08-11T13:55:09Z",
+    "user": {
+      "login": "whoamiTodo"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/timestreaminfluxdb"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### Description\n\nOn 2026-07, AWS launched customer-managed **backup and restore** for Amazon Timestream for InfluxDB (InfluxDB 2 and InfluxDB 3). The feature supports:\n\n- **Automated backups**: up to four recurring backup configurations per resource, each with its own schedule (hourly / daily / weekly / monthly / custom) and retention period.\n- **On-demand backups** (e.g. before risky operations).\n- **Incremental backups**: the first backup is a full copy, subsequent backups are incremental.\n- *"
+  },
+  {
+    "number": 49392,
+    "title": "data/aws_networkmanager_core_network_policy_document: always-rendered dns-support / security-group-referencing-support break PutCoreNetworkPolicy on pre-existing core networks",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49392",
+    "created_at": "2026-08-11T13:25:27Z",
+    "user": {
+      "login": "oponomarov-tu"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "regression"
+      },
+      {
+        "name": "service/networkmanager"
+      },
+      {
+        "name": "prioritized"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.8\nhashicorp/aws v6.57.1 (reproducible with any release >= 6.3.0)\nNot reproducible with hashicorp/aws <= 6.2.x\n```\n\n### Affected Resource(s) or Data Source(s)\n\n- `data/aws_networkmanager_core_network_policy_document`\n- `aws_networkmanager_core_network_policy_attachment` (where the failure surfaces at apply time)\n\n### Expected Behavior\n\nUpgrading the provider from 6.2.x to >= 6.3.0 without any configuration change should not modify"
+  },
+  {
+    "number": 49391,
+    "title": "EC2 application status checks",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49391",
+    "created_at": "2026-08-11T12:55:23Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/ec2"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 5
+    },
+    "body": "> Amazon EC2 introduces application status checks\n\n* [Announcement](https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-ec2-application-status-checks/)\n* [User Guide](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/application-status-checks.html)"
+  },
+  {
+    "number": 49388,
+    "title": "aws_wafv2_web_acl_rule silently removes data_protection_config from the parent Web ACL",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49388",
+    "created_at": "2026-08-11T09:55:10Z",
+    "user": {
+      "login": "gastonriveroaizon"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/wafv2"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 6
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nOpenTofu v1.11.8\nhashicorp/aws v6.57.1\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_wafv2_web_acl_rule`\n* `aws_wafv2_web_acl` as collateral damage: loses its `data_protection_config`\n\n### Expected Behavior\n\nCreating or updating an `aws_wafv2_web_acl_rule` should only add or modify the named rule within the parent Web ACL. Every other property of the Web ACL, including `data_protection_config`, should be left untouched.\n\n### Actual Beh"
+  },
+  {
+    "number": 49374,
+    "title": "[Bug]: aws_bedrockagentcore_gateway_target: metadata_configuration causes \"Provider produced inconsistent result after apply\" on create, and the one value AWS returns can't be declared",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49374",
+    "created_at": "2026-08-10T11:05:39Z",
+    "user": {
+      "login": "sosafe-jose-gonzalez"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/bedrockagentcore"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 10
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nOpenTofu 1.12.3\nterraform-provider-aws v6.58.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\naws_bedrockagentcore_gateway_target\n\n### Expected Behavior\n\nCreating an aws_bedrockagentcore_gateway_target without declaring metadata_configuration should succeed, with the provider treating the block as Computed if AWS populates it server-side.\n\n### Actual Behavior\n\nCreating the resource without declaring metadata_configuration fails on the very fir"
+  },
+  {
+    "number": 49367,
+    "title": "`aws_wafv2_web_acl_rule` `immunity_time_property` problem",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49367",
+    "created_at": "2026-08-10T00:17:34Z",
+    "user": {
+      "login": "bigwheel"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/wafv2"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\n\u276f terraform --version\nTerraform v1.15.8\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.58.0\n+ provider registry.terraform.io/hashicorp/random v3.9.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_wafv2_web_acl_rule` resource\n\n### Expected Behavior\n\nApply and plan successfully.\n\n### Actual Behavior\n\nApply failed in error. But, immunity time was set correctly and plan shows diff permanently.\n\n### Relevant Error/Panic Ou"
+  },
+  {
+    "number": 49366,
+    "title": "aws_mailmanager_traffic_policy fail when no policy_statement",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49366",
+    "created_at": "2026-08-09T13:11:05Z",
+    "user": {
+      "login": "rtorrente"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/mailmanager"
+      }
+    ],
+    "comments": 3,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform : v1.15.8\nAWS Provider : 6.58.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n`aws_mailmanager_traffic_policy`\n\n### Expected Behavior\n\nIt should be possible to create and update a aws_mailmanager_traffic_policy with zero policy_statement blocks and only a default_action, as this configuration is achievable via the AWS Console:                                                                                                            "
+  },
+  {
+    "number": 49360,
+    "title": "aws_batch_job_queue: V0\u2192V1 state upgrader writes stale schema, crashes all plans on pre-6.x state",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49360",
+    "created_at": "2026-08-07T21:37:50Z",
+    "user": {
+      "login": "bboggs-streambit"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/batch"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "## Summary\n\nThe `aws_batch_job_queue` state upgrader `upgradeJobQueueResourceStateV0toV1` writes a `resourceJobQueueDataV1` struct, but the current (V2) schema requires a `region` attribute and no longer has `compute_environments`. This makes every `terraform plan` crash on state written by aws provider 5.x \u2014 the stack becomes permanently unplannable.\n\n## Terraform and Provider Versions\n\n- Terraform: v1.14.4\n- AWS Provider: 6.58.0 (confirmed failing on 6.0.0 through 6.58.0; 5.100.0 fails for a d"
+  },
+  {
+    "number": 49359,
+    "title": "[Enhancement]: Expose ECS-managed resource ARNs on aws_ecs_express_gateway_service",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49359",
+    "created_at": "2026-08-07T21:31:02Z",
+    "user": {
+      "login": "s3cube"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/ecs"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\nThe `aws_ecs_express_gateway_service` resource does not expose the ARNs of the AWS resources that Amazon ECS auto-provisions to run an Express service (load balancer, target groups, listeners, certificate, log groups, metric alarms, security groups, auto-scaling policies/targets).\n\nThe CloudFormation resource `AWS::ECS::ExpressGatewayService` surfaces these as the read-only `ECSManagedResourceArns` structure. In the AWS SDK for Go v2 they are available on `ServiceRevision.EcsMan"
+  },
+  {
+    "number": 49358,
+    "title": "Updating aws_emrserverless_application subnets results in rebuilding the application",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49358",
+    "created_at": "2026-08-07T20:28:01Z",
+    "user": {
+      "login": "anoonan-zz"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/emrserverless"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.15.8\non darwin_arm64\n+ provider registry.terraform.io/hashicorp/aws v6.41.0\n+ provider registry.terraform.io/hashicorp/local v2.8.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_emrserverless_application`\n\n### Expected Behavior\n\nWhen updating subnet IDs in the network configuration block, it is expected that the resulting run will change the subnets used by the application, leaving the application itself intact.\n\n### Actua"
+  },
+  {
+    "number": 49357,
+    "title": "Add aws_sesv2_tenant_suppression_attributes - PutTenantSuppressionAttributes",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49357",
+    "created_at": "2026-08-07T20:00:08Z",
+    "user": {
+      "login": "rtorrente"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/sesv2"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 2
+    },
+    "body": "### What new functionality are you requesting?\n\n`aws_sesv2_tenant_suppression_attributes`\n\n### Description\n\nAmazon SES v2 exposes https://docs.aws.amazon.com/ses/latest/APIReference-V2/API_PutTenantSuppressionAttributes.html to configure suppression list preferences at the tenant level. \n\nIt controls:\n- whether the tenant uses its own suppression list (TENANT) or the account-level one (ACCOUNT)\n- which bounce/complaint events automatically add addresses to that suppression list                  "
+  },
+  {
+    "number": 49356,
+    "title": "resource/aws_bedrockagentcore_harness: Acceptance testing gaps",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49356",
+    "created_at": "2026-08-07T17:39:51Z",
+    "user": {
+      "login": "gdavison"
+    },
+    "labels": [
+      {
+        "name": "service/bedrockagentcore"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Affected Resource(s)\n\n- `aws_bedrockagentcore_harness`\n\n### Description\n\nThere are gaps in the acceptance tests for `aws_bedrockagentcore_harness`. Based on the [contributor documentation](https://hashicorp.github.io/terraform-provider-aws/running-and-writing-acceptance-tests/#resource-acceptance-testing), there should be be per-attribute tests that\n\n> verifi[y] the resource with a single additional argument can be created, read, optionally updated (or force resource recreation), deleted, an"
+  },
+  {
+    "number": 49352,
+    "title": "Amazon Bedrock AgentCore runtime instances",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49352",
+    "created_at": "2026-08-07T15:35:46Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "new-service"
+      },
+      {
+        "name": "service/bedrockagentcore"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "> AgentCore runtime instances are now generally available\n\n* [Announcement](https://aws.amazon.com/about-aws/whats-new/2026/08/aws-bedrock-agentcore-runtime-instances-generally-available/)\n* [Blog post](https://aws.amazon.com/blogs/aws/runtime-instances-persistent-compute-for-production-ai-agents-on-amazon-bedrock-agentcore/)\n\nRequires AWS SDK for Go v2 [Release 2026-08-06](https://github.com/aws/aws-sdk-go-v2/commit/8e53001bbc9606576c8a2cd38094e08353d98030): https://github.com/hashicorp/terrafo"
+  },
+  {
+    "number": 49351,
+    "title": "AWS Backup S3 Access Points",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49351",
+    "created_at": "2026-08-07T15:28:51Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/s3"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "> AWS Backup for Amazon S3 now supports direct access to backup data\n\n* [Announcement](https://aws.amazon.com/about-aws/whats-new/2026/08/aws-backup-amazon-s3-direct-access/)\n* [Blog post](https://aws.amazon.com/blogs/storage/access-amazon-s3-backup-data-directly-using-s3-access-points-in-aws-backup/)\n\nRequires AWS SDK for Go v2 [Release 2026-08-06](https://github.com/aws/aws-sdk-go-v2/commit/8e53001bbc9606576c8a2cd38094e08353d98030): https://github.com/hashicorp/terraform-provider-aws/pull/4934"
+  },
+  {
+    "number": 49350,
+    "title": "Amazon DynamoDB real-time vector search",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49350",
+    "created_at": "2026-08-07T15:22:22Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/dynamodb"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "> Amazon DynamoDB now supports real-time vector search\n\n* [Announcement](https://aws.amazon.com/about-aws/whats-new/2026/08/amazon-dynamodb-vector-search/)\n* [Blog post](https://aws.amazon.com/blogs/aws/amazon-dynamodb-now-supports-real-time-vector-search-at-any-scale/)\n* [Developer Guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/VectorSearch.html)\n\nRequires AWS SDK for Go v2 [Release 2026-08-04](https://github.com/aws/aws-sdk-go-v2/commit/4af61eb66952f3daf1e5df411bdf489b"
+  },
+  {
+    "number": 49348,
+    "title": "`aws_rds_cluster_instance`: disabling Performance Insights fails with `InvalidParameterCombination` because the retention period is still sent",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49348",
+    "created_at": "2026-08-07T12:36:49Z",
+    "user": {
+      "login": "jaygridley"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/rds"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "## Terraform and AWS Provider Version\n\n```console\nTerraform v1.11.4\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.58.0\n```\n\nAlso reproducible on v6.0.0 and v5.100.0 \u2014 the affected code is unchanged since at least v5.x.\n\n## Affected Resource(s) or Data Source(s)\n\n* `aws_rds_cluster_instance`\n\n## Expected Behavior\n\nChanging `performance_insights_enabled` from `true` to `false` disables Performance Insights on the instance. `performance_insights_retention_period` is not sent to t"
+  },
+  {
+    "number": 49344,
+    "title": "aws_bedrockagentcore_gateway_rate_limit - Manage rate and token limits on a gateway",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49344",
+    "created_at": "2026-08-07T10:31:48Z",
+    "user": {
+      "login": "ari-luokkala"
+    },
+    "labels": [
+      {
+        "name": "new-resource"
+      },
+      {
+        "name": "service/bedrockagentcore"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 1
+    },
+    "body": "### Description\n\n Amazon Bedrock AgentCore Gateway now supports rate limiting that is not yet available in the Terraform provider.\n  \n  Rate limits allow defining request and connection throttling scoped by dimensions:\n \n  - IAM Principal ARN\n  - IAM Source Identity\n  - OAuth Claim\n  - Model\n  - Target\n  - Tool\n  \n  This feature is available in the AWS Console and API but missing from Terraform.\n\n### Affected Resource(s) or Data Source(s)\n\n * `aws_bedrockagentcore_gateway_rate_limit`\n\n### Potent"
+  },
+  {
+    "number": 49342,
+    "title": "[Enhancement]: Support in-place update of approximate_creation_date_time_precision on aws_dynamodb_kinesis_streaming_destination",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49342",
+    "created_at": "2026-08-07T08:14:28Z",
+    "user": {
+      "login": "yousefdebaz-fivexlio"
+    },
+    "labels": [
+      {
+        "name": "enhancement"
+      },
+      {
+        "name": "service/dynamodb"
+      }
+    ],
+    "comments": 1,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Description\n\n`aws_dynamodb_kinesis_streaming_destination` marks `approximate_creation_date_time_precision` as `ForceNew`, and the resource has no `Update` function at all \u2014 only `Create`, `Read` and `Delete`. Changing the precision therefore plans a destroy-and-recreate:\n\n```\n# aws_dynamodb_kinesis_streaming_destination.this[\"orders\"] must be replaced\n-/+ resource \"aws_dynamodb_kinesis_streaming_destination\" \"this\" {\n      ~ approximate_creation_date_time_precision = \"MICROSECOND\" -> \"MILLIS"
+  },
+  {
+    "number": 49327,
+    "title": "Amazon Bedrock Agents Classic maintenance mode",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49327",
+    "created_at": "2026-08-06T15:36:16Z",
+    "user": {
+      "login": "ewbankkit"
+    },
+    "labels": [
+      {
+        "name": "service/bedrockagent"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "> Amazon Bedrock Agents (launched November 2023) is now Amazon Bedrock Agents Classic and will no longer be open to new customers starting on July 30, 2026.\n\n* [Announcement](https://aws.amazon.com/about-aws/whats-new/2026/06/aws-service-availability/)\n* [User Guide](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html)"
+  },
+  {
+    "number": 49326,
+    "title": "aws_ecr_repositories returns null when no repositories are found",
+    "state": "open",
+    "html_url": "https://github.com/hashicorp/terraform-provider-aws/issues/49326",
+    "created_at": "2026-08-06T15:29:49Z",
+    "user": {
+      "login": "bjfelton"
+    },
+    "labels": [
+      {
+        "name": "bug"
+      },
+      {
+        "name": "service/ecr"
+      }
+    ],
+    "comments": 2,
+    "reactions": {
+      "+1": 0
+    },
+    "body": "### Terraform and AWS Provider Version\n\n```console\nTerraform v1.14.6\non linux_amd64\n+ provider registry.terraform.io/hashicorp/aws v6.46.0\n```\n\n### Affected Resource(s) or Data Source(s)\n\n* `aws_ecr_repositories`\n\n### Expected Behavior\n\nWhen no repositories are found, `names` attribute is an empty list.\n\n### Actual Behavior\n\nWhen no repositories are found, `names` attribute is `null`.\n\n### Relevant Error/Panic Output\n\nn/a\n\n### Sample Terraform Configuration\n\n<details open>\n<summary>Click to expa"
+  }
+]

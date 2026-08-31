@@ -1,5 +1,9 @@
 # teamos-prd-assistant
 
+[![CI](https://github.com/Bosc01/teamos-prd-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Bosc01/teamos-prd-assistant/actions/workflows/ci.yml)
+
+51 unit tests run in CI on Python 3.10, 3.11, and 3.12 (`make test`).
+
 HashiCorp PMs spend significant time on work that produces nothing - chasing approvals,
 repeating the same follow-ups with no record, and trying to find customer context that
 lives in ten different places at once. This repo is a set of working prototypes built
@@ -40,60 +44,58 @@ ranked CSV ready for PM review.
 ### Run the pipeline
 
 ```bash
-python src/pipeline.py
+python -m src.pipeline
 ```
 
 You can override the default number of topic clusters:
 
 ```bash
-python src/pipeline.py --clusters 20
+python -m src.pipeline --clusters 20
 ```
 
 Or via environment variable:
 
 ```bash
-TOPIC_CLUSTER_COUNT=20 python src/pipeline.py
+TOPIC_CLUSTER_COUNT=20 python -m src.pipeline
 ```
 
 You can also override repositories per run:
 
 ```bash
-python src/pipeline.py --repos hashicorp/terraform hashicorp/terraform-provider-aws
+python -m src.pipeline --repos hashicorp/terraform hashicorp/terraform-provider-aws
 ```
 
 ### Demo without a live API call
 
-Sample data is already in the repo. To run the pipeline from the extraction step
-onward without calling the GitHub API:
+The repo ships a sample dataset in `data/samples/`: 100 open issues from
+hashicorp/terraform and 100 from hashicorp/terraform-provider-aws, fetched on
+2026-08-31 and redacted to the fields the pipeline reads (bodies truncated to
+500 characters, email addresses removed), plus a matching `insights.json`.
+Copy it into the working directories, then run everything after the fetch step:
 
 ```bash
-# Skip fetch - run extraction, clustering, and CSV export against existing raw data
-python src/extract_insights.py
-python src/pipeline.py --clusters 10
+make seed
+python -m src.extract_insights
+python -m src.cluster_topics --clusters 10
+python -m src.export_csv
 ```
 
-Or to see the clustering output directly from already-processed data:
-
-```bash
-python src/cluster_topics.py
-```
-
-Sample files:
-- `data/raw/terraform_issues.json` - ~450 raw issues from hashicorp/terraform
-- `data/raw/terraform_aws_issues.json` - ~900 raw issues from hashicorp/terraform-provider-aws
-- `data/processed/insights.json` - already-extracted insights, ready for clustering
+No `GITHUB_TOKEN` is required for any of these commands.
 
 ### Output
 
 The pipeline writes:
 
-- `output/insights.csv` sorted by highest `signal_score` first
+- `output/insights.csv` sorted by highest `signal_score` first, including each
+  issue's `cluster_id` and `topic_cluster`
 - `data/processed/clustered_insights.json` with per-issue `cluster_id` and `topic_cluster`
 - `output/topic_clusters.csv` with cluster summary rows (`cluster_id`, `topic_label`,
   `issue_count`, `avg_signal_score`, `top_issues`)
 
-The clustering step guards against empty/degenerate issue text and assigns those rows
-to an `insufficient detail` topic instead of forcing unstable vectors into KMeans.
+The clustering step guards against empty/degenerate issue text: those rows get the
+sentinel `cluster_id` -1 with topic `insufficient detail`, stay out of
+`topic_clusters.csv` and the volume rankings, and are reported as a coverage
+statistic instead.
 
 ### What is missing
 
@@ -107,9 +109,10 @@ to an `insufficient detail` topic instead of forcing unstable vectors into KMean
 
 PMs spend hours chasing sign-offs with no record of who was contacted or when. The
 Approval Tracker lets a PM create an approval request with a doc link, approver list,
-and deadline. Each approver gets a Slack notification. The system sends automatic
-reminders on a configurable schedule. Every notification and status change is logged
-to a full audit trail in `data/approvals/approvals.json`.
+and deadline. Each approver gets a Slack notification when the request is created.
+The system sends automatic reminders on a configurable schedule, and one overdue
+alert per cooldown window once the deadline passes. Every notification and status
+change is logged to a full audit trail in `data/approvals/approvals.json`.
 
 Built directly from discovery findings: 15 of 17 PM interviews named stalled sign-off
 workflows as a top pain point, unprompted.
@@ -127,24 +130,31 @@ usable without Slack configured.
 
 ### Demo without any setup
 
-A real approval request is already stored in `data/approvals/approvals.json`.
+Seed the sample data, which includes two approval requests with placeholder
+handles (one healthy, one overdue with a blocked approver):
+
+```bash
+make seed
+```
+
 To see reminders run without sending anything:
 
 ```bash
-python src/reminder_runner.py --dry-run
+python -m src.reminder_runner --dry-run
 ```
 
-To see current approval status:
+To see current approval status and the urgency-grouped dashboard:
 
 ```bash
-python src/approval_tracker.py status
+python -m src.approval_tracker status
+python -m src.approval_tracker dashboard
 ```
 
 ### Quick start
 
 ```bash
 # Create an approval request
-python src/approval_tracker.py create \
+python -m src.approval_tracker create \
   --title "My Feature PRD" \
   --url "https://link-to-doc" \
   --requester "@yourname" \
@@ -152,16 +162,16 @@ python src/approval_tracker.py create \
   --deadline 2026-06-25
 
 # Check status of all requests
-python src/approval_tracker.py status
+python -m src.approval_tracker status
 
 # Check status of a specific request
-python src/approval_tracker.py status --id abc12345
+python -m src.approval_tracker status --id abc12345
 
 # Run reminders (add this to cron: every morning at 9 am)
-python src/reminder_runner.py
+python -m src.reminder_runner
 
 # Dry run - see what would be sent without sending
-python src/reminder_runner.py --dry-run
+python -m src.reminder_runner --dry-run
 ```
 
 ### Approver workflow
@@ -170,26 +180,30 @@ An approver updates their status by running:
 
 ```bash
 # Mark as currently reviewing
-python src/approval_tracker.py update --id <request-id> --approver @yourhandle --status reviewing
+python -m src.approval_tracker update --id <request-id> --approver @yourhandle --status reviewing
 
 # Approve the document
-python src/approval_tracker.py update --id <request-id> --approver @yourhandle --status approved
+python -m src.approval_tracker update --id <request-id> --approver @yourhandle --status approved
 
 # Mark as blocked (with optional note)
-python src/approval_tracker.py update --id <request-id> --approver @yourhandle --status blocked \
+python -m src.approval_tracker update --id <request-id> --approver @yourhandle --status blocked \
   --note "Waiting on security review first"
 ```
+
+When every approver has approved, the request flips to `complete`; if an approver
+later moves back to `reviewing` or `blocked`, it reopens. Cancelled requests reject
+further updates.
 
 ### Cancel a request
 
 ```bash
-python src/approval_tracker.py cancel --id <request-id>
+python -m src.approval_tracker cancel --id <request-id>
 ```
 
 ### View full audit trail
 
 ```bash
-python src/approval_tracker.py audit --id <request-id>
+python -m src.approval_tracker audit --id <request-id>
 ```
 
 ### Cron setup
@@ -197,8 +211,12 @@ python src/approval_tracker.py audit --id <request-id>
 To send reminders automatically every weekday morning at 9 am:
 
 ```
-0 9 * * 1-5 cd /path/to/teamos-prd-assistant && python src/reminder_runner.py
+0 9 * * 1-5 cd /path/to/teamos-prd-assistant && python -m src.reminder_runner
 ```
+
+Concurrent runs are safe: every write to `approvals.json` holds an exclusive file
+lock, so a cron run and an interactive session cannot clobber each other's
+audit-trail entries.
 
 ### What is missing
 
@@ -220,18 +238,31 @@ a PM starts a new document. Not ready to demo - listed here for transparency.
 
 ```bash
 # Add a document
-python src/doc_store.py add --title "My PRD" --url "https://..." --type prd \
+python -m src.doc_store add --title "My PRD" --url "https://..." --type prd \
   --author "@handle" --product-area "terraform-core" \
   --customers "acme" --tags "auth" --content "snippet here"
 
 # Search documents
-python src/doc_store.py search --query "authentication"
+python -m src.doc_store search --query "authentication"
 
 # List all PRDs
-python src/doc_store.py list --type prd
+python -m src.doc_store list --type prd
 ```
 
 ---
+
+## Development
+
+```bash
+pip install -r requirements-dev.txt
+make test    # unittest suite
+make lint    # ruff
+make seed    # copy data/samples/ into the working data directories
+```
+
+Runtime dependencies are pinned in `requirements.txt`; `requirements-dev.txt` adds
+lint tooling. CI runs lint and the full suite on Python 3.10, 3.11, and 3.12.
+Licensed under the MIT License.
 
 ## Fields reference
 
@@ -247,6 +278,8 @@ python src/doc_store.py list --type prd
 | `labels` | Comma-separated issue labels |
 | `comments` | Number of issue comments |
 | `upvotes` | `+1` reaction count |
-| `signal_score` | Log-scaled comments/upvotes weighted by issue recency |
+| `signal_score` | Log-scaled comments/upvotes with 180-day half-life recency decay |
 | `body_snippet` | First 300 chars of body with newlines removed |
 | `category` | Rule-based category from labels and title keywords |
+| `cluster_id` | Topic cluster id (-1 means insufficient detail to cluster) |
+| `topic_cluster` | TF-IDF derived topic label |
