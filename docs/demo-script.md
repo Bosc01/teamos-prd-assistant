@@ -23,7 +23,7 @@ five times. This is a working prototype that replaces that whole loop."
 ## Step 1: Show the dashboard
 
 ```bash
-python src/approval_tracker.py dashboard
+python -m src.approval_tracker dashboard
 ```
 
 What you will see: the Team OS PRFAQ request, open, with @sarah and @gerald as
@@ -37,7 +37,7 @@ approvers, grouped by urgency. Point out:
 ## Step 2: Show reminders without sending anything
 
 ```bash
-python src/reminder_runner.py --dry-run
+python -m src.reminder_runner --dry-run
 ```
 
 What you will see: which approvers would be notified right now and why.
@@ -51,7 +51,7 @@ Point out:
 ## Step 3: Show an approver updating their status
 
 ```bash
-python src/approval_tracker.py update \
+python -m src.approval_tracker update \
   --id <first 8 chars of the request id from dashboard output> \
   --approver @sarah \
   --status reviewing
@@ -60,7 +60,7 @@ python src/approval_tracker.py update \
 Then run dashboard again:
 
 ```bash
-python src/approval_tracker.py dashboard
+python -m src.approval_tracker dashboard
 ```
 
 What you will see: @sarah now shows the reviewing icon instead of pending.
@@ -74,7 +74,7 @@ Point out:
 ## Step 4: Show a blocked approver with a note
 
 ```bash
-python src/approval_tracker.py update \
+python -m src.approval_tracker update \
   --id <request id prefix> \
   --approver @gerald \
   --status blocked \
@@ -91,7 +91,7 @@ Run dashboard again. Point out:
 ## Step 5: Show the audit trail
 
 ```bash
-python src/approval_tracker.py audit --id <request id prefix>
+python -m src.approval_tracker audit --id <request id prefix>
 ```
 
 What you will see: every event since the request was created - created, reminders
